@@ -1,0 +1,104 @@
+/* src/Lojinha/AdminLoja/AdminLoja.css */
+
+:root {
+  --primary-color: #27ae60;
+  --primary-dark: #219150;
+  --primary-light: #eafaf1;
+  --secondary-color: #16a085;
+  --danger-color: #e74c3c;
+  --danger-dark: #c0392b;
+  --menu-bg: #eafaf1;
+  --menu-active: #d4f5e9;
+  --menu-border: #27ae60;
+}
+
+.admin-loja-drawer-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background-color: var(--menu-bg) !important;
+}
+
+.admin-loja-drawer-header {
+  padding: 1rem;
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: 1.1rem;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.admin-loja-menu-list {
+  padding-top: 1rem;
+}
+
+.admin-loja-menu-icon {
+  color: var(--primary-dark) !important;
+  min-width: 40px;
+}
+
+.admin-loja-active {
+  background-color: var(--menu-active) !important;
+  font-weight: bold;
+  border-left: 4px solid var(--menu-border) !important;
+  color: var(--primary-dark) !important;
+}
+
+.admin-loja-logout-button {
+  width: 88%;
+  height: 50px;
+  margin: 1rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--danger-color) !important;
+  color: white !important;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.3s ease;
+  border: none;
+  font-weight: 600;
+  font-size: 1rem;
+  position: absolute;
+  bottom: 0;
+}
+
+.admin-loja-logout-button:hover {
+  background-color: var(--danger-dark) !important;
+}
+
+.admin-loja-main {
+  background-color: #fff !important;
+  padding: 2rem;
+  overflow-y: auto;
+  border-radius: 0 0 8px 8px;
+  min-height: 80vh;
+}
+
+.admin-loja-dashboard {
+  flex-grow: 1;
+  width: 100%;
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+  .admin-loja-main {
+    padding: 1rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .MuiAppBar-root {
+    padding: 0 10px !important;
+  }
+  .MuiIconButton-root {
+    right: 10px !important;
+  }
+  .admin-loja-main {
+    padding: 0.7rem !important;
+  }
+}

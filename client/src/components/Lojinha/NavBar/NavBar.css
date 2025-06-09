@@ -1,0 +1,110 @@
+/* NavBar.css - Atualizado com cores do Shopify */
+
+.lojinha-navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 1.2rem;
+  background-color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  height: 70px;
+}
+
+.lojinha-navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.lojinha-navbar-logo {
+  height: 50px !important;
+  max-width: 220px;
+  object-fit: contain;
+}
+
+.lojinha-navbar-no-logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.lojinha-navbar-title {
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.lojinha-navbar-right {
+  display: flex;
+  align-items: center;
+}
+
+.lojinha-navbar-cart-btn,
+.lojinha-navbar-menu-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 0.6rem;
+  color: #333;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  min-width: 48px;
+  min-height: 48px;
+}
+
+.lojinha-navbar-cart-btn {
+  color: #00A651; /* Verde Shopify */
+}
+
+.lojinha-navbar-cart-btn:hover {
+  color: #008542;
+  background-color: rgba(0, 166, 81, 0.1);
+  transform: scale(1.05);
+}
+
+.lojinha-navbar-menu-btn:hover {
+  color: #0066cc;
+  background-color: rgba(0, 102, 204, 0.1);
+}
+
+.lojinha-navbar-cart-count {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background-color: #e53935;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  border: 2px solid white;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .lojinha-navbar-logo {
+    height: 42px;
+    max-width: 180px;
+  }
+}
+
+@media (max-width: 480px) {
+  .lojinha-navbar {
+    padding: 0.6rem 1rem;
+  }
+  
+  .lojinha-navbar-logo {
+    height: 36px;
+    max-width: 150px;
+  }
+}

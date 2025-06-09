@@ -1,0 +1,207 @@
+/* src/components/Admin/EditBanner/EditBanner.module.css */
+.editBannerContainer {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background-color: var(--mui-palette-background-default, #f5f7fa);
+  border-radius: 12px;
+}
+
+.h4 {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--mui-palette-text-primary, #1a202c);
+  margin-bottom: 1.5rem;
+  letter-spacing: -0.02em;
+}
+
+.body1 {
+  font-size: 1rem;
+  color: var(--mui-palette-text-secondary, #4a5568);
+  line-height: 1.5;
+}
+
+.bannerLimitInfo {
+  background: linear-gradient(135deg, var(--mui-palette-info-light, #e6f3ff) 0%, #f0f9ff 100%);
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.bannerLimitInfo strong {
+  color: var(--mui-palette-info-main, #2b6cb0);
+}
+
+.alertError {
+  background-color: var(--mui-palette-error-light, #fff1f0);
+  color: var(--mui-palette-error-main, #c53030);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.alertInfo {
+  background-color: var(--mui-palette-info-light, #e6f3ff);
+  color: var(--mui-palette-info-main, #2b6cb0);
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.loadingText {
+  font-size: 1.2rem;
+  color: var(--mui-palette-text-secondary, #718096);
+  text-align: center;
+  padding: 2rem;
+}
+
+.bannerGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.card {
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background-color: var(--mui-palette-background-paper, #ffffff);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  will-change: transform, box-shadow;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.cardMedia {
+  object-fit: cover;
+  height: 180px;
+  transition: transform 0.3s ease;
+}
+
+.cardMedia:hover {
+  transform: scale(1.05);
+}
+
+.cardContent {
+  padding: 1rem;
+}
+
+.typographyBody2 {
+  font-size: 0.9rem;
+  color: var(--mui-palette-text-secondary, #718096);
+  margin-bottom: 0.5rem;
+}
+
+.cardActions {
+  justify-content: flex-end;
+  padding: 0.5rem 1rem;
+}
+
+.button {
+  text-transform: none;
+  font-weight: 500;
+  border-radius: 6px;
+  padding: 0.5rem 1rem;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.buttonError {
+  background-color: var(--mui-palette-error-main, #e53e3e);
+}
+
+.buttonError:hover {
+  background-color: var(--mui-palette-error-dark, #c53030);
+  transform: translateY(-2px);
+}
+
+.uploadSection {
+  margin-bottom: 2rem;
+}
+
+.uploadSection .h6 {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: var(--mui-palette-text-primary, #1a202c);
+  margin-bottom: 1rem;
+}
+
+.dialog {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-width: 500px;
+}
+
+.dialogTitle {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--mui-palette-text-primary, #1a202c);
+  padding: 1.5rem;
+}
+
+.dialogContent {
+  padding: 1.5rem;
+}
+
+.dialogContent img {
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.formControl {
+  margin-bottom: 1rem;
+}
+
+.inputLabel {
+  font-size: 0.95rem;
+  color: var(--mui-palette-text-secondary, #4a5568);
+}
+
+.outlinedInput {
+  border-radius: 6px;
+}
+
+.outlinedInput:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--mui-palette-primary-main, #2b6cb0);
+}
+
+.formHelperText {
+  font-size: 0.85rem;
+  color: var(--mui-palette-text-secondary, #718096);
+}
+
+.dialogActions {
+  padding: 1rem 1.5rem;
+}
+
+.buttonPrimary {
+  background-color: var(--mui-palette-primary-main, #2b6cb0);
+}
+
+.buttonPrimary:hover {
+  background-color: var(--mui-palette-primary-dark, #2c5282);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+  .editBannerContainer {
+    padding: 1rem;
+  }
+
+  .h4 {
+    font-size: 1.5rem;
+  }
+
+  .bannerGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .dialog {
+    margin: 1rem;
+  }
+}

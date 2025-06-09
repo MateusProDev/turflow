@@ -1,0 +1,154 @@
+/* Banner principal */
+.lojinha-banner {
+  width: 100vw;
+  max-width: 100%;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  align-items: center;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.lojinha-banner img {
+  width: 100vw;
+  max-width: 1000px !important;
+  height: 32vw;
+  min-height: 260px;
+  max-height: 420px;
+  object-fit: cover;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  background: #f4f6f8;
+  transition: box-shadow 0.2s;
+  margin: 0 auto;
+  display: block;
+}
+
+/* Banner slider */
+.lojinha-banner.slider {
+  position: relative;
+  overflow: hidden;
+  width: 100vw;
+  max-width: 1000px !important;
+  margin: 0 auto 1.5rem auto;
+  height: 32vw;
+  min-height: 260px;
+  max-height: 420px;
+  background: #f4f6f8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s;
+}
+
+.slider-img {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.7s;
+  z-index: 1;
+  pointer-events: none;
+}
+.slider-img.active {
+  opacity: 1;
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.slider-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255,255,255,0.7);
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.7rem;
+  color: #27ae60;
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.slider-arrow.left { left: 18px; }
+.slider-arrow.right { right: 18px; }
+.slider-arrow:hover { background: #fff; }
+
+.slider-dots {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 20;
+}
+.slider-dot {
+  width: 32px;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  position: relative;
+  cursor: pointer;
+  transition: width 0.3s, background 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.slider-dot.active {
+  background: #27ae60;
+  width: 48px;
+}
+.slider-dot-progress {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  background: #fff;
+  height: 100%;
+  width: 100%;
+  animation: slider-dot-progress-bar linear forwards;
+}
+@keyframes slider-dot-progress-bar {
+  from { width: 100%; }
+  to { width: 0%; }
+}
+
+/* Mobile: ocupa toda a largura, altura maior */
+@media (max-width: 600px) {
+  .lojinha-banner {
+    margin-bottom: 1rem;
+    gap: 0.5rem;
+  }
+  .lojinha-banner img,
+  .slider-img {
+    width: 100vw;
+    min-width: 100vw;
+    max-width: 100vw;
+    padding: 0 10px 0 2px !important;
+    height: 30vh !important;
+    min-height: 160px !important;
+    max-height: 280px !important;
+    border-radius: 0;
+    box-shadow: 0 2px 16px rgba(0,0,0,0.10);
+  }
+  .slider-arrow { width: 32px; height: 32px; font-size: 1.3rem; }
+  .slider-dot, .slider-dot.active { width: 22px; height: 7px; }
+  .lojinha-banner.slider {
+    width: 100vw;
+    min-width: 100vw;
+    max-width: 100vw;
+    height: 30vh !important;
+    min-height: 160px !important;
+    max-height: 280px !important;
+    border-radius: 0;
+  }
+}
