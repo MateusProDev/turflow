@@ -1,0 +1,168 @@
+/* Container principal */
+.manage-stock-container {
+  padding: 32px 0;
+  background: #f6f8fa;
+  min-height: 100vh;
+}
+
+/* Título */
+.manage-stock-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2541b2;
+  margin-bottom: 24px;
+  letter-spacing: -1px;
+}
+
+/* Botão de adicionar */
+.manage-stock-add-btn {
+  margin-bottom: 24px;
+  background: linear-gradient(90deg, #4a6bff 0%, #2541b2 100%);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 8px;
+  padding: 10px 22px;
+  transition: background 0.2s;
+}
+
+.manage-stock-add-btn:hover {
+  background: linear-gradient(90deg, #2541b2 0%, #4a6bff 100%);
+}
+
+/* Cards dos produtos */
+.manage-stock-card {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  transition: box-shadow 0.2s, transform 0.2s;
+  margin-bottom: 1.5rem;
+}
+
+.manage-stock-card:hover {
+  box-shadow: 0 4px 16px #0002;
+  transform: translateY(-4px) scale(1.03);
+}
+
+.manage-stock-card-img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: #fafafa;
+  margin-bottom: 1rem;
+}
+
+.manage-stock-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+  text-align: center;
+}
+
+.manage-stock-card-price {
+  color: #2541b2;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.manage-stock-card-stock {
+  color: #888;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+}
+
+/* Ícones de ação nos cards */
+.manage-stock-card-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.manage-stock-card-actions .MuiIconButton-root {
+  border-radius: 50%;
+  transition: background 0.18s, transform 0.18s;
+  padding: 7px;
+}
+
+.manage-stock-card-actions .MuiIconButton-root:active,
+.manage-stock-card-actions .MuiIconButton-root:focus,
+.manage-stock-card-actions .MuiIconButton-root:hover {
+  background: #f0f4ff;
+  transform: scale(1.13);
+}
+
+.manage-stock-card-actions .MuiIconButton-root[aria-label="Remover"]:hover {
+  background: #ffeaea;
+}
+
+.manage-stock-card-actions .MuiIconButton-root[aria-label="Editar"]:hover {
+  background: #eaf7ff;
+}
+
+.manage-stock-card-actions .MuiIconButton-root[aria-label="Priorizar"]:hover {
+  background: #fffbe6;
+}
+
+.manage-stock-card-actions .MuiIconButton-root[aria-label="Desativar"]:hover {
+  background: #fff0f0;
+}
+
+.manage-stock-card-actions .MuiIconButton-root[aria-label="Ativar"]:hover {
+  background: #eaffea;
+}
+
+/* Estrela de prioridade no topo do card */
+.manage-stock-card .MuiSvgIcon-root.star-prioridade {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  color: #ffc107;
+  font-size: 28px;
+  z-index: 2;
+}
+
+/* Chip de esgotado */
+.manage-stock-chip {
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  border-radius: 8px;
+  padding: 0 8px;
+}
+
+/* Estilo da barra de pesquisa */
+.manage-stock-search {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  border: 1.5px solid #e0e0e0;
+  font-size: 1.05rem;
+  background: #fff;
+  color: #222;
+  outline: none;
+  transition: border 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px #0001;
+}
+
+.manage-stock-search:focus {
+  border: 1.5px solid #1976d2;
+  box-shadow: 0 4px 16px #1976d220;
+}
+
+@media (max-width: 700px) {
+  .manage-stock-container {
+    padding: 16px 0;
+  }
+  .manage-stock-card {
+    padding: 10px 4px 8px 4px;
+  }
+  .manage-stock-card-img {
+    width: 70px;
+    height: 70px;
+  }
+}

@@ -1,0 +1,74 @@
+/* Zera margens e paddings globais com !important */
+html, body, #root {
+  margin: 0 !important;
+  padding: 0 !important;
+  width: 100% !important; /* Alterado de 100vw para 100% */
+  min-height: 100vh !important;
+  box-sizing: border-box !important;
+  background: #f6f8fa !important;
+}
+
+* {
+  box-sizing: inherit !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+section, footer {
+  margin: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+body {
+  margin: 0 !important;
+  padding: 0 !important;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+  background-color: #f4f6f8 !important;
+  color: #333 !important;
+}
+
+.container {
+  max-width: 400px !important;
+  margin: 5% auto !important;
+  padding: 2rem !important;
+  background-color: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+.homepage-container {
+  width: 100% !important; /* Alterado de 100vw para 100% */
+  min-height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+}
+
+h2 {
+  text-align: center !important;
+  margin-bottom: 1.5rem !important;
+}
+
+input {
+  width: 100% !important;
+  padding: 0.75rem !important;
+  margin-bottom: 1rem !important;
+  border: 1px solid #ccc !important;
+  border-radius: 4px !important;
+}
+
+button {
+  padding: 0.75rem !important;
+  background-color: #007bff !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  margin-bottom: 1rem !important;
+}
+
+button:hover {
+  background-color: #0056b3 !important;
+}

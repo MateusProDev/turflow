@@ -1,0 +1,152 @@
+.footer {
+  background-color: #f9f9f9;
+  color: #333;
+  padding: 40px 20px;
+  font-family: 'Inter', sans-serif;
+  border-top: 1px solid #ddd;
+}
+
+.container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between !important;
+  gap: 60px;
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px 20px 0 20px;
+}
+
+.col {
+  flex: 1 1 260px;
+  min-width: 220px;
+}
+
+.brand {
+  font-size: 26px;
+  font-weight: 700;
+  color: #111;
+  margin-bottom: 10px;
+}
+
+.description {
+  font-size: 15px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.text {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.contact,
+.links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.contact li,
+.links li {
+  margin-bottom: 10px;
+}
+
+.contact a,
+.links a {
+  color: #444;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.contact a:hover,
+.links a:hover {
+  color: #000;
+}
+
+.social {
+  display: flex;
+  gap: 14px;
+  font-size: 20px;
+  margin-top: 10px;
+}
+
+.social a {
+  color: #555;
+  transition: transform 0.2s, color 0.3s;
+}
+
+.social a:hover {
+  color: #000;
+  transform: scale(1.1);
+}
+
+.bottom {
+  border-top: 1px solid #ddd;
+  margin-top: 40px;
+  padding-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: #777;
+}
+
+.legal {
+  margin-top: 10px;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 30px;
+}
+
+.legal a {
+  color: #777;
+  font-size: 13px;
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.legal a:hover {
+  color: #000;
+}
+.icon {
+  color: inherit; /* Herda a cor do elemento pai */
+  transition: color 0.3s ease;
+  margin: 0 8px;
+  font-size: 24px;
+}
+
+.icon:hover {
+  color: #1976d2; /* Cor azul padrão do MUI, ou qualquer outra que preferir */
+}
+
+.social a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.social a:hover {
+  color: #1976d2; /* Cor consistente com o hover dos ícones */
+}
+
+/* Mobile responsivo */
+@media (max-width: 768px) {
+  .container {
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px 20px -25px 20px;
+  }
+
+  .social {
+    justify-content: flex-start;
+  }
+
+  .bottom {
+    font-size: 13px;
+  }
+
+  .legal {
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+}
