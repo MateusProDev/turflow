@@ -205,7 +205,7 @@ const AppContent = () => {
               </CategoriasProvider>
             </StoreRequiredRoute>
           }
-        /> 
+        />
         <Route
           path="/minha-loja"
           element={
