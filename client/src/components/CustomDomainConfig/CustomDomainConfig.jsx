@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Alert,
   Link,
+  Chip,
 } from '@mui/material';
 import { Dns as DnsIcon } from '@mui/icons-material';
 import axios from 'axios';
@@ -39,7 +40,7 @@ const CustomDomainConfig = ({
 
   const handleSetupCustomDomain = async () => {
     if (!customDomainInput.trim()) {
-      setDomainError("Por favor, insira un dominio válido.");
+      setDomainError("Por favor, insira um domínio válido.");
       return;
     }
     if (!currentUser?.uid) {
@@ -57,26 +58,23 @@ const CustomDomainConfig = ({
     setDomainConfigInstructions(null);
 
     try {
-      const response = await axios.post(`${apiBaseUrl}/api/loja/configure-domain`, {
+      // Chama backend que já salva no Firestore e adiciona na Vercel
+      const response = await axios.post(`${apiBaseUrl}/api/loja/custom-domain`, {
         lojaId: currentUser.uid,
         domain: customDomainInput.trim(),
       });
 
       if (response.data && response.data.dnsInstructions) {
-        // Chama a función onSave para actualizar o Firestore co novo dominio
-        const saved = await onSaveChanges("Domínio Personalizado", {
+        // Atualiza Firestore no client (opcional)
+        await onSaveChanges("Domínio Personalizado", {
            customDomain: customDomainInput.trim(),
-           domainVerified: false, // Inicialmente non verificado
-           // domainDNSRecords: response.data.dnsInstructions // Opcional: gardar instrucións
-        }, `Domínio ${customDomainInput.trim()} enviado para configuración! Siga as instrucións de DNS.`);
-        
-        if (saved) {
-            setDomainConfigInstructions(response.data.dnsInstructions);
-            setDomainSuccess(`Domínio ${customDomainInput.trim()} adicionado. Siga as instruções de DNS abaixo.`);
-        } else {
-            throw new Error("Falha ao guardar o domínio na base de dados da loja.");
-        }
+           domainVerified: false,
+        }, `Domínio ${customDomainInput.trim()} enviado para configuración! Siga as instruções de DNS.`);
 
+        setDomainConfigInstructions(response.data.dnsInstructions);
+        setDomainSuccess(
+          `Domínio ${customDomainInput.trim()} adicionado. Siga as instruções de DNS abaixo.`
+        );
       } else {
         throw new Error(response.data.message || "Não foi possível obter as instruções de DNS da API.");
       }
@@ -84,9 +82,11 @@ const CustomDomainConfig = ({
       console.error("Erro ao configurar domínio personalizado:", err);
       const errorMessage = err.response?.data?.message || err.message || "Erro desconhecido ao configurar domínio.";
       setDomainError(errorMessage);
-      // Se o erro for da API da Vercel sobre domínio xa existente, tratar de forma específica
       if (errorMessage.includes("already exists") || errorMessage.includes("already in use")) {
-        setDomainError(`O domínio "${customDomainInput.trim()}" xa está en uso ou configurado. Se é seu, verifique as configuracións de DNS. Se o problema persistir, contacte o soporte.`);
+        setDomainError(`O domínio "${customDomainInput.trim()}" já está em uso ou configurado. Se é seu, verifique as configurações de DNS. Se o problema persistir, contate o suporte.`);
+      }
+      if (err.response?.data?.dnsInstructions) {
+        setDomainConfigInstructions(err.response.data.dnsInstructions);
       }
     } finally {
       setDomainLoading(false);

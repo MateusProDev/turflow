@@ -45,6 +45,7 @@ import SalesReports from "../SalesReports/SalesReports";
 import LojinhaPreview from "../LojinhaPreview/LojinhaPreview";
 import DashboardHome from "./DashboardHome";
 import PaymentsSettings from "../PaymentsSettings/PaymentsSettings"; // <-- 1. Importe o novo componente
+import CustomDomainConfig from "../CustomDomainConfig/CustomDomainConfig"; // <-- Adicione esta linha
 
 const Dashboard = ({ user }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -226,6 +227,7 @@ const Dashboard = ({ user }) => {
     { text: "Pagamentos", icon: <PointOfSaleIcon />, allowedPlans: ["free", "plus", "premium"] }, // Adicionado ícone
     { text: "Visualizar Loja", icon: <PreviewIcon />, allowedPlans: ["plus", "premium"] },
     { text: "Upgrade de Plano", icon: <UpgradeIcon />, allowedPlans: ["free", "plus", "premium"] },
+    { text: "Domínio Personalizado", icon: <HomeIcon />, allowedPlans: ["plus", "premium"] }, // <-- Adicione esta linha (ajuste o ícone se quiser)
   ];
 
   const renderContent = () => {
@@ -336,6 +338,27 @@ const Dashboard = ({ user }) => {
             setStoreData={setStoreData} // <-- Passe a função setStoreData
             currentUser={currentUser}
             userPlan={userPlan}
+          />
+        );
+      case "Domínio Personalizado":
+        return (
+          <CustomDomainConfig
+            currentUser={currentUser}
+            storeData={storeData}
+            userPlan={userPlan}
+            onSaveChanges={async (label, data, msg) => {
+              try {
+                await updateDoc(doc(db, "lojas", currentUser.uid), data);
+                alert(msg || "Domínio atualizado!");
+                setStoreData(prev => ({ ...prev, ...data }));
+                return true;
+              } catch (e) {
+                alert("Erro ao salvar domínio.");
+                return false;
+              }
+            }}
+            apiBaseUrl={process.env.REACT_APP_API_URL || "https://storesync.onrender.com"}
+            onUpgradePlanClick={() => setSelectedSection("Upgrade de Plano")}
           />
         );
       default:
