@@ -23,7 +23,7 @@ try {
   } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     console.log("Firebase: Tentando inicializar com GOOGLE_APPLICATION_CREDENTIALS (path)...");
     admin.initializeApp({
-      credential: admin.credential.cert(require(process.env.GOOGLE_APPLICATION_CREDENTIALS)),
+"C:\Users\noteb\Downloads\git-filter-repo-2.47.0\git-filter-repo-2.47.0"      credential: admin.credential.cert(require(process.env.GOOGLE_APPLICATION_CREDENTIALS)),
     });
     console.log('Firebase: Admin SDK inicializado com GOOGLE_APPLICATION_CREDENTIALS (path).');
   } else {

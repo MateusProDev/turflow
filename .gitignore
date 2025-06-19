@@ -1,0 +1,63 @@
+# Logs
+yarn-debug.log*
+yarn-error.log*
+npm-debug.log*
+pnpm-debug.log*
+lerna-debug.log*
+logs
+*.log
+
+# Node
+node_modules/
+dist/
+dist-ssr/
+build/
+*.local
+
+# Editor
+.vscode/
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Variáveis de Ambiente
+.env
+.env*
+.env.*
+.env*.local
+.env.*.local
+server/.env
+client/.env
+client/.env.*
+
+# Firebase/Google secrets
+server/serviceAccountKey.json
+
+# Banco de dados
+*.sqlite
+*.db
+
+# Test coverage
+coverage/
+client/coverage/
+server/coverage/
+
+# Outros
+*.tgz
+*.tar.gz
+*.zip
+*.bak
+*.swp
+*.swo
+
+# next.js
+.next/
+
+# vercel
+.vercel/
+
+# Firebase emulators
+firebase-debug.log
+firebase-emulator-suite.log
+.firebase/
