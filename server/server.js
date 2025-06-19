@@ -73,6 +73,20 @@ app.use(cors({
 
 app.use(express.json());
 
+// --- CONSTANTES PARA URLs DE RETORNO ---
+const BASE_FRONTEND_URL = process.env.FRONTEND_URL || 'http://turflow.vercel.app';
+
+const getDefaultBackUrls = (context = {}) => {
+  const { userId, storeId, type = 'payment' } = context;
+  const baseSuccessUrl = `${BASE_FRONTEND_URL}/${storeId ? `loja/${storeId}/` : ''}payment-status`;
+  
+  return {
+    success: `${baseSuccessUrl}?status=success${userId ? `&userId=${userId}` : ''}${storeId ? `&storeId=${storeId}` : ''}&type=${type}`,
+    failure: `${baseSuccessUrl}?status=failure${userId ? `&userId=${userId}` : ''}${storeId ? `&storeId=${storeId}` : ''}&type=${type}`,
+    pending: `${baseSuccessUrl}?status=pending${userId ? `&userId=${userId}` : ''}${storeId ? `&storeId=${storeId}` : ''}&type=${type}`,
+  };
+};
+
 // Configura Mercado Pago com token principal (única instância)
 if (process.env.MERCADO_PAGO_ACCESS_TOKEN) {
     MercadoPago.configure({
@@ -99,10 +113,21 @@ app.post('/api/create-preference', async (req, res) => {
     return res.status(400).json({ error: 'Dados incompletos para pagamento de plano' });
   }
 
-  // URLs de fallback para garantir que nunca fiquem undefined
-  const defaultSuccessUrl = `http://turflow.vercel.app/success?userId=${userId}&type=plan_payment`;
-  const defaultFailureUrl = `http://turflow.vercel.app/failure?userId=${userId}&type=plan_payment`;
-  const defaultPendingUrl = `http://turflow.vercel.app/pending?userId=${userId}&type=plan_payment`;
+  // Usar função auxiliar para gerar URLs de retorno
+  const backUrls = getDefaultBackUrls({ userId, type: 'plan_payment' });
+
+  // Garantir que backUrls.success é sempre uma string válida
+  if (!backUrls.success || typeof backUrls.success !== 'string' || backUrls.success.trim() === '') {
+    backUrls.success = 'https://turflow.vercel.app/success?type=plan_payment';
+  }
+  if (!backUrls.failure || typeof backUrls.failure !== 'string' || backUrls.failure.trim() === '') {
+    backUrls.failure = 'https://turflow.vercel.app/failure?type=plan_payment';
+  }
+  if (!backUrls.pending || typeof backUrls.pending !== 'string' || backUrls.pending.trim() === '') {
+    backUrls.pending = 'https://turflow.vercel.app/pending?type=plan_payment';
+  }
+
+  console.log('DEBUG back_urls:', backUrls);
 
   const preference = {
     items: [{
@@ -111,11 +136,7 @@ app.post('/api/create-preference', async (req, res) => {
       unit_price: parseFloat(amount),
       currency_id: 'BRL',
     }],
-    back_urls: {
-      success: defaultSuccessUrl,
-      failure: defaultFailureUrl,
-      pending: defaultPendingUrl,
-    },
+    back_urls: backUrls,
     auto_return: 'approved',
     notification_url: `${process.env.BASE_API_URL}/api/mp-platform-webhook`,
     metadata: {
@@ -130,7 +151,13 @@ app.post('/api/create-preference', async (req, res) => {
     console.log("Log: Preferência de PLANO criada com ID:", response.body.id);
     res.json({ preferenceId: response.body.id, init_point: response.body.init_point });
   } catch (err) {
-    console.error('Erro ao criar preferência de PLANO:', err.message || err);
+    // LOG DETALHADO DO ERRO
+    if (err.response) {
+      console.error('Erro ao criar preferência de PLANO:', err.response.status, err.response.statusText);
+      console.error('Body:', err.response.data || err.response.body);
+    } else {
+      console.error('Erro ao criar preferência de PLANO:', err.message || err);
+    }
     if(err.cause) console.error('Causa do erro (MP):', err.cause);
     res.status(500).send('Erro ao criar preferência de plano');
   }
@@ -146,13 +173,18 @@ app.post('/api/mercadopago', async (req, res) => {
     return res.status(400).json({ error: 'Dados incompletos para checkout transparente de plano' });
   }
 
+  const backUrls = getDefaultBackUrls({ userId, type: 'plan_payment_transparent' });
+
   const preference = {
     items: [{
-        title: description || 'Plano StoreSync',
-        quantity: 1,
-        unit_price: parseFloat(amount),
-        currency_id: 'BRL',
+      title: description || 'Plano StoreSync',
+      quantity: 1,
+      unit_price: parseFloat(amount),
+      currency_id: 'BRL',
     }],
+    back_urls: backUrls,
+    auto_return: 'approved',
+    notification_url: `${process.env.BASE_API_URL}/api/mp-platform-webhook`,
     metadata: {
       userId,
       payment_context: 'platform_plan_transparent',
@@ -170,92 +202,8 @@ app.post('/api/mercadopago', async (req, res) => {
   }
 });
 
-
-// --- ROTA PARA CHECKOUT DE PRODUTOS DA LOJA DO CLIENTE (SEM INSTÂNCIA SEPARADA) ---
-app.post('/api/create-store-preference', async (req, res) => {
-  console.log("Log: Rota POST /api/create-store-preference (LOJA) acessada. Body:", JSON.stringify(req.body, null, 2));
-
-  if (!db) {
-      console.error("ERRO CRÍTICO em /api/create-store-preference: Instância do Firestore (db) não está definida.");
-      return res.status(500).json({ error: 'Erro interno crítico do servidor - Configuração de banco de dados indisponível.' });
-  }
-
-  const { storeId, items, payerInfo, backUrlsFromClient } = req.body;
-
-  if (!storeId || !items || !Array.isArray(items) || items.length === 0) {
-    console.error("Erro em /api/create-store-preference: Dados incompletos.", { storeId, itemsProvided: !!items });
-    return res.status(400).json({ error: 'Dados incompletos para o checkout da loja: storeId e items (array) são obrigatórios.' });
-  }
-
-  try {
-    // Busca dados da loja apenas para validar e pegar info básica, não para token MP
-    console.log(`Buscando dados da loja para storeId: ${storeId}`);
-    const storeRef = db.collection('lojas').doc(storeId);
-    const storeDoc = await storeRef.get();
-
-    if (!storeDoc.exists) {
-      console.error(`Erro em /api/create-store-preference: Loja ${storeId} não encontrada.`);
-      return res.status(404).json({ error: 'Loja não encontrada.' });
-    }
-
-    const storeData = storeDoc.data();
-
-    // Construção dos itens para MercadoPago
-    const mpItems = items.map(item => ({
-      id: String(item.id || item.productId || Date.now() + Math.random()),
-      title: item.title || item.name,
-      description: item.description || `Produto da loja ${storeData.nome || storeId}`,
-      quantity: parseInt(item.quantity || item.qtd, 10),
-      unit_price: parseFloat(item.unit_price || item.price),
-      currency_id: item.currency_id || 'BRL',
-    }));
-
-    const defaultSuccessUrl = `http://turflow.vercel.app/loja/${storeId}/payment-status?status=success&storeid=${storeId}`;
-    const defaultFailureUrl = `http://turflow.vercel.app/loja/${storeId}/payment-status?status=failure&storeid=${storeId}`;
-    const defaultPendingUrl = `http://turflow.vercel.app/loja/${storeId}/payment-status?status=pending&storeid=${storeId}`;
-
-    const preferencePayload = {
-      items: mpItems,
-      payer: payerInfo ? {
-        name: payerInfo.name,
-        surname: payerInfo.surname,
-        email: payerInfo.email,
-      } : undefined,
-      back_urls: {
-        success: backUrlsFromClient?.success || defaultSuccessUrl,
-        failure: backUrlsFromClient?.failure || defaultFailureUrl,
-        pending: backUrlsFromClient?.pending || defaultPendingUrl,
-      },
-      auto_return: 'approved',
-      notification_url: `${process.env.BASE_API_URL}/api/mp-store-webhook?storeId=${storeId}`,
-      metadata: {
-        storeId,
-        cart_items_ids: items.map(i => i.id || i.productId),
-        payment_context: 'store_product_purchase',
-      },
-    };
-
-    console.log("Criando preferência MercadoPago com payload:", JSON.stringify(preferencePayload, null, 2));
-
-    // Usa única instância MercadoPago já configurada globalmente
-    const response = await MercadoPago.preferences.create(preferencePayload);
-
-    console.log("Preferência criada com sucesso para a loja", storeId, "ID da preferência:", response.body.id);
-
-    res.json({
-      preferenceId: response.body.id,
-      init_point: response.body.init_point,
-      sandbox_init_point: response.body.sandbox_init_point,
-    });
-  } catch (error) {
-    console.error("Erro ao criar preferência MercadoPago para a loja", storeId, error.message || error);
-    res.status(500).json({ error: 'Erro ao criar preferência de pagamento para a loja.' });
-  }
-});
-
 // PORT e start do servidor
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor StoreSync rodando na porta ${PORT}`);
 });
- 
