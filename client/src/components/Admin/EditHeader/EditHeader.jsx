@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Button, TextField, Box, Avatar, Switch, FormControlLabel } from "@mui/material";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
@@ -26,6 +26,16 @@ const EditHeader = ({
   const handleLogoUpload = async (url) => {
     setUploading(true);
     setLogoUrl(url);
+    try {
+      if (currentUser?.uid) {
+        await updateDoc(doc(db, "lojas", currentUser.uid), {
+          logoUrl: url
+        });
+      }
+    } catch (err) {
+      console.error("Erro ao salvar logo no Firestore:", err);
+      alert("Erro ao salvar logo no banco de dados.");
+    }
     setUploading(false);
   };
 
@@ -93,7 +103,6 @@ const EditHeader = ({
       {localExibirLogo && (
         <Box sx={{ mb: 3 }}>
           <h3>Logo da Loja</h3>
-          
           {logoUrl && (
             <Box sx={{ mb: 2, textAlign: 'center' }}>
               <Avatar
@@ -104,24 +113,25 @@ const EditHeader = ({
               />
             </Box>
           )}
-          
+          {/* Ref para acionar input de arquivo ao clicar no botão */}
           <CloudinaryUploadWidget onUpload={handleLogoUpload}>
-            <Button 
-              variant="outlined" 
-              fullWidth
-              sx={{ mb: 2 }}
-              disabled={uploading}
-            >
-              {uploading ? "Enviando..." : logoUrl ? "Alterar Logo" : "Adicionar Logo"}
-            </Button>
+            {({ openFileDialog }) => (
+              <Button
+                variant="outlined"
+                fullWidth
+                sx={{ mb: 2 }}
+                disabled={uploading}
+                onClick={openFileDialog}
+              >
+                {uploading ? "Enviando..." : logoUrl ? "Alterar Logo" : "Adicionar Logo"}
+              </Button>
+            )}
           </CloudinaryUploadWidget>
-
           {uploading && (
             <Box sx={{ textAlign: 'center', mb: 2 }}>
               <span style={{ color: '#27ae60', fontWeight: 500 }}>Enviando logo...</span>
             </Box>
           )}
-
           {logoUrl && (
             <TextField
               label="URL do Logo (opcional - edição manual)"

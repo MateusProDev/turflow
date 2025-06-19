@@ -9,16 +9,19 @@ const validateImage = async (file) => {
 };
 
 // Função para upload no Cloudinary
-const uploadImageToCloudinary = async (file) => {
+const uploadImageToCloudinary = async (file, cloudName, uploadPreset) => {
   await validateImage(file);
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error("Configuração do Cloudinary ausente.");
+  }
 
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("upload_preset", "qc7tkpck"); // Seu upload_preset
-  formData.append("cloud_name", "doeiv6m4h");   // Seu cloud_name
+  formData.append("upload_preset", uploadPreset);
 
   const response = await fetch(
-    "https://api.cloudinary.com/v1_1/doeiv6m4h/image/upload",
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
     {
       method: "POST",
       body: formData,
@@ -34,15 +37,27 @@ const uploadImageToCloudinary = async (file) => {
 };
 
 // Agora aceita children para customização do botão
-const CloudinaryUploadWidget = ({ onUpload, children, disabled }) => {
+const CloudinaryUploadWidget = ({ onUpload, children, disabled, cloudName, uploadPreset }) => {
+  // Permite usar variáveis de ambiente como fallback
+  const resolvedCloudName = cloudName || process.env.REACT_APP_CLOUD_NAME;
+  const resolvedUploadPreset = uploadPreset || process.env.REACT_APP_UPLOAD_PRESET;
+  const inputRef = React.useRef();
+
   const handleUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     try {
-      const imageUrl = await uploadImageToCloudinary(file);
+      const imageUrl = await uploadImageToCloudinary(file, resolvedCloudName, resolvedUploadPreset);
       onUpload(imageUrl);
     } catch (error) {
       console.error(error.message);
+    }
+  };
+
+  // Função para abrir o seletor de arquivos programaticamente
+  const openFileDialog = () => {
+    if (inputRef.current && !disabled) {
+      inputRef.current.click();
     }
   };
 
@@ -54,8 +69,9 @@ const CloudinaryUploadWidget = ({ onUpload, children, disabled }) => {
         style={{ display: "none" }}
         onChange={handleUpload}
         disabled={disabled}
+        ref={inputRef}
       />
-      {children ? children : <span style={{ color: "#4a6bff", textDecoration: "underline" }}>Enviar imagem</span>}
+      {typeof children === 'function' ? children({ openFileDialog }) : (children ? children : <span style={{ color: "#4a6bff", textDecoration: "underline" }}>Enviar imagem</span>)}
     </label>
   );
 };

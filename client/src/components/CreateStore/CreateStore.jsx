@@ -318,8 +318,7 @@ const CreateStore = ({ onStoreCreated }) => {
                     onChange={async (e) => {
                       const file = e.target.files[0];
                       if (!file) return;
-                      // ...upload logic...
-                      const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
+                      const uploadPreset = process.env.REACT_APP_UPLOAD_PRESET;
                       const cloudName = process.env.REACT_APP_CLOUD_NAME;
                       if (!uploadPreset || !cloudName) {
                         setErrorMsg('Configuração de upload de imagem ausente.');
@@ -350,20 +349,22 @@ const CreateStore = ({ onStoreCreated }) => {
                         setLoading(false);
                       }
                     }}
-                    disabled={loading}
                   />
                 </label>
-                {logoUrl && (
-                  <div style={{ marginTop: 12 }}>
-                    <img src={logoUrl} alt="Logo preview" style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8 }} />
+                {uploadProgress > 0 && (
+                  <div className="upload-progress">
+                    <div style={{ width: `${uploadProgress}%` }} />
                   </div>
                 )}
-                {uploadProgress > 0 && loading && (
-                  <div className="upload-progress">
-                    <div style={{ width: `${uploadProgress}%`, background: '#27ae60', height: 8, borderRadius: 4 }}></div>
+                {logoUrl && (
+                  <div className="image-preview-wrapper">
+                    <div className="image-preview-container">
+                      <img src={logoUrl} alt="Logo preview" className="image-preview" />
+                    </div>
                   </div>
                 )}
               </div>
+              <small className="form-text-custom">Formatos aceitos: JPG, PNG, SVG. Tamanho recomendado: 300x300px.</small>
             </div>
           </div>
         );
@@ -376,6 +377,9 @@ const CreateStore = ({ onStoreCreated }) => {
                 <div 
                   className={`plan-option ${plano === 'free' ? 'selected' : ''}`}
                   onClick={() => setPlano('free')}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={plano === 'free'}
                 >
                   <h5>Free</h5>
                   <div className="price">R$0/mês</div>
@@ -388,6 +392,9 @@ const CreateStore = ({ onStoreCreated }) => {
                 <div 
                   className={`plan-option ${plano === 'plus' ? 'selected' : ''}`}
                   onClick={() => setPlano('plus')}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={plano === 'plus'}
                 >
                   <h5>Plus</h5>
                   <div className="price">R$39,90/mês</div>
@@ -401,6 +408,9 @@ const CreateStore = ({ onStoreCreated }) => {
                 <div 
                   className={`plan-option ${plano === 'premium' ? 'selected' : ''}`}
                   onClick={() => setPlano('premium')}
+                  tabIndex={0}
+                  role="button"
+                  aria-pressed={plano === 'premium'}
                 >
                   <h5>Premium</h5>
                   <div className="price">R$99,90/mês</div>
@@ -475,22 +485,27 @@ const CreateStore = ({ onStoreCreated }) => {
         {/* Progress Steps */}
         <div className="progress-steps-wrapper">
           <div className="progress-steps">
-            {steps.map((step, index) => (
-              <div 
-                key={index}
-                className={`progress-step ${currentStep >= index ? 'active' : ''} ${currentStep === index ? 'current' : ''}`}
-              >
-                <div className="step-icon">
-                  {currentStep > index ? <FiCheck /> : step.icon}
-                </div>
-                <div className="step-info">
-                  <div className="step-title">{step.title}</div>
-                  {currentStep === index && (
-                    <div className="step-description">{step.description}</div>
+            {steps.map((step, index) => {
+              // Em mobile, só mostra o passo atual
+              const isCurrent = currentStep === index;
+              return (
+                <div 
+                  key={index}
+                  className={`progress-step ${currentStep >= index ? 'active' : ''} ${isCurrent ? 'current' : ''}`}
+                  style={window.innerWidth <= 700 && !isCurrent ? { display: 'none' } : {}}
+                >
+                  <div className="step-icon">
+                    {currentStep > index ? <FiCheck /> : step.icon}
+                  </div>
+                  {isCurrent && (
+                    <div className="step-info">
+                      <div className="step-title">{step.title}</div>
+                      <div className="step-description">{step.description}</div>
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="progress-bar-main">
             <div
@@ -513,10 +528,11 @@ const CreateStore = ({ onStoreCreated }) => {
           >
             <FiArrowLeft className="me-1" /> Voltar
           </button>
-          {currentStep < steps.length - 1 ? (
+          {/* Corrigir lógica do botão avançar para o passo do plano */}
+          {(currentStep < steps.length - 1 && (currentStep !== 3 || plano)) ? (
             <button 
               onClick={nextStep} 
-              disabled={loading || (currentStep === 2 && uploadProgress > 0 && uploadProgress < 100)}
+              disabled={loading || (currentStep === 2 && uploadProgress > 0 && uploadProgress < 100) || (currentStep === 3 && !plano)}
               className="btn btn-primary btn-next"
             >
               {currentStep === 2 && loading && uploadProgress < 100 ? (
@@ -531,14 +547,16 @@ const CreateStore = ({ onStoreCreated }) => {
               )}
             </button>
           ) : (
-            <button 
-              onClick={handleCreateStore} 
-              disabled={loading}
-              className="btn btn-success btn-create"
-            >
-              {loading ? 'Criando Loja...' : 'Criar Minha Loja!'}
-              {loading && <span className="spinner-border spinner-border-sm ms-2"></span>}
-            </button>
+            currentStep === steps.length - 1 && (
+              <button 
+                onClick={handleCreateStore} 
+                disabled={loading}
+                className="btn btn-success btn-create"
+              >
+                {loading ? 'Criando Loja...' : 'Criar Minha Loja!'}
+                {loading && <span className="spinner-border spinner-border-sm ms-2"></span>}
+              </button>
+            )
           )}
         </div>
       </div>
@@ -546,9 +564,24 @@ const CreateStore = ({ onStoreCreated }) => {
       {showSuccess && (
         <div className="success-overlay">
           <div className="success-content">
-            <FiCheck size={80} className="success-icon" />
-            <h2>Loja Criada com Sucesso!</h2>
-            <p>Você será redirecionado para o painel em {countdown} segundos...</p>
+            <div className="success-anim-wrapper">
+              <FiCheck size={80} className="success-icon" />
+              <div className="confetti-anim" id="confetti-anim" />
+            </div>
+            <h2 className="success-title">Parabéns! Sua agência foi criada 🎉</h2>
+            <p className="success-message">Agora você faz parte do TurFlow.<br />Prepare-se para encantar seus clientes!</p>
+            <div className="success-countdown">
+              <span className="countdown-label">Redirecionando em</span>
+              <span className="countdown-number">{countdown}</span>
+              <span className="countdown-label">segundos...</span>
+            </div>
+            <button
+              className="btn btn-primary btn-success-view"
+              onClick={() => navigate('/dashboard')}
+              style={{ marginTop: 18 }}
+            >
+              Ver minha agência agora
+            </button>
           </div>
         </div>
       )}
