@@ -197,6 +197,10 @@ const CreateStore = ({ onStoreCreated }) => {
           corSecundaria: '#2541b2',
           tema: 'claro'
         },
+        customDomain: "",
+        domainVerified: false,
+        domainDNSRecords: [],
+        vercelDomainStatus: {},
       };
 
       let usuarioDataUpdate = {};
