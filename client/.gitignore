@@ -21,3 +21,32 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Firebase/Google secrets
+../server/serviceAccountKey.json
+
+# VSCode
+.vscode/
+
+# Banco de dados
+*.sqlite
+*.db
+
+# Outros
+*.tgz
+*.tar.gz
+*.zip
+*.bak
+*.swp
+*.swo
+
+# next.js
+.next/
+
+# vercel
+.vercel/
+
+# Firebase emulators
+firebase-debug.log
+firebase-emulator-suite.log
+.firebase/
