@@ -16,14 +16,17 @@ const EditHeader = ({
   onUpdate, // Nova prop para callback
 }) => {
   const [localExibirLogo, setLocalExibirLogo] = useState(exibirLogoProp);
+  const [uploading, setUploading] = useState(false);
 
   // Sincroniza com a prop sempre que mudar
   useEffect(() => {
     setLocalExibirLogo(exibirLogoProp);
   }, [exibirLogoProp]);
 
-  const handleLogoUpload = (url) => {
+  const handleLogoUpload = async (url) => {
+    setUploading(true);
     setLogoUrl(url);
+    setUploading(false);
   };
 
   const handleToggleExibirLogo = (checked) => {
@@ -107,10 +110,17 @@ const EditHeader = ({
               variant="outlined" 
               fullWidth
               sx={{ mb: 2 }}
+              disabled={uploading}
             >
-              {logoUrl ? "Alterar Logo" : "Adicionar Logo"}
+              {uploading ? "Enviando..." : logoUrl ? "Alterar Logo" : "Adicionar Logo"}
             </Button>
           </CloudinaryUploadWidget>
+
+          {uploading && (
+            <Box sx={{ textAlign: 'center', mb: 2 }}>
+              <span style={{ color: '#27ae60', fontWeight: 500 }}>Enviando logo...</span>
+            </Box>
+          )}
 
           {logoUrl && (
             <TextField
@@ -137,6 +147,7 @@ const EditHeader = ({
         fullWidth
         size="large"
         sx={{ mt: 2 }}
+        disabled={uploading}
       >
         Salvar Alterações
       </Button>

@@ -348,7 +348,7 @@ const CreateStore = ({ onStoreCreated }) => {
                 <label className="file-upload-label">
                   <FiUpload className="me-2" />
                   {uploadProgress > 0 && loading ? 'Enviando...' : logoUrl ? 'Alterar Imagem' : 'Selecionar Imagem'}
-                  <input 
+                  <input
                     type="file" 
                     onChange={handleFileUpload} 
                     className="file-upload-input" 
@@ -358,18 +358,19 @@ const CreateStore = ({ onStoreCreated }) => {
                 </label>
               </div>
               {loading && uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="upload-progress mt-3">
-                  <div style={{ width: `${uploadProgress}%`, background: 'var(--gradient)', height: 8, borderRadius: 4 }} />
-                  <span>{uploadProgress}%</span>
+                <div className="upload-progress mt-3" style={{ textAlign: 'center' }}>
+                  <div style={{ width: `${uploadProgress}%`, background: 'var(--gradient)', height: 8, borderRadius: 4, marginBottom: 4 }} />
+                  <span style={{ fontSize: 14 }}>{uploadProgress}%</span>
                 </div>
               )}
               {logoUrl && (
-                <div className="image-preview-wrapper mt-4">
-                  <div className="image-preview-container">
+                <div className="image-preview-wrapper mt-4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div className="image-preview-container" style={{ maxWidth: 140, maxHeight: 140, width: '100%', height: '100%' }}>
                     <img
                       src={logoUrl}
                       alt="Logo preview"
                       className="image-preview"
+                      style={{ objectFit: 'contain', width: '100%', height: '100%' }}
                     />
                   </div>
                 </div>
@@ -526,10 +527,19 @@ const CreateStore = ({ onStoreCreated }) => {
           {currentStep < steps.length - 1 ? (
             <button 
               onClick={nextStep} 
-              disabled={loading}
+              disabled={loading || (currentStep === 2 && uploadProgress > 0 && uploadProgress < 100)}
               className="btn btn-primary btn-next"
             >
-              Avançar <FiArrowRight className="ms-1" />
+              {currentStep === 2 && loading && uploadProgress < 100 ? (
+                <>
+                  Enviando Logo...
+                  <span className="spinner-border spinner-border-sm ms-2"></span>
+                </>
+              ) : (
+                <>
+                  Avançar <FiArrowRight className="ms-1" />
+                </>
+              )}
             </button>
           ) : (
             <button 
