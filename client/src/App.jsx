@@ -6,7 +6,7 @@ import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firesto
 import { useState, useEffect } from "react";
 import { db } from './firebaseConfig';
 import { Spinner } from 'react-bootstrap';
-import '@fortawesome/fontawesome-free/css/all.min.css';
+import '@fortawesome/fontawesome-free/css/all.min.css'; 
 
 // Components
 import HomePage from './components/HomePage/HomePage';
