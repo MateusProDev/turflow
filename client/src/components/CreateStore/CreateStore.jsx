@@ -9,10 +9,10 @@ import './CreateStore.css'; // Certifique-se que o CSS está correto
 
 const CreateStore = ({ onStoreCreated }) => {
   const steps = [
-    { title: 'Nome da Loja', description: 'Como sua loja será chamada?', icon: <FiShoppingBag size={24} /> },
-    { title: 'Segmento', description: 'Qual o segmento do seu negócio?', icon: <FiTag size={24} /> },
-    { title: 'Logo', description: 'Adicione uma imagem para sua loja', icon: <FiImage size={24} /> },
-    { title: 'Plano', description: 'Escolha o plano ideal para você', icon: <FiDollarSign size={24} /> },
+    { title: 'Nome da Agência', description: 'Como sua agência será chamada?', icon: <FiShoppingBag size={24} /> },
+    { title: 'Segmento de Turismo', description: 'Qual o segmento principal da sua agência?', icon: <FiTag size={24} /> },
+    { title: 'Logo', description: 'Adicione o logo da sua agência', icon: <FiImage size={24} /> },
+    { title: 'Plano', description: 'Escolha o plano ideal para sua agência', icon: <FiDollarSign size={24} /> },
     { title: 'Confirmação', description: 'Revise os dados e finalize', icon: <FiCheck size={24} /> }
   ];
 
@@ -97,22 +97,22 @@ const CreateStore = ({ onStoreCreated }) => {
     switch (currentStep) {
       case 0:
         if (!nomeLoja.trim()) {
-          setErrorMsg('Por favor, insira um nome para sua loja');
+          setErrorMsg('Por favor, insira o nome da sua agência');
           return false;
         }
         if (nomeLoja.length < 3) {
-          setErrorMsg('O nome da loja deve ter pelo menos 3 caracteres');
+          setErrorMsg('O nome da agência deve ter pelo menos 3 caracteres');
           return false;
         }
         break;
       case 1:
         if (!segmento.trim()) {
-          setErrorMsg('Por favor, insira o segmento da sua loja');
+          setErrorMsg('Por favor, insira o segmento da sua agência');
           return false;
         }
         break;
       case 2:
-        // Logo is optional
+        // Logo é opcional, mas pode ser obrigatório se quiser
         break;
       case 3:
         if (!plano) {
@@ -179,7 +179,7 @@ const CreateStore = ({ onStoreCreated }) => {
         extras: []
       };
 
-      const lojaData = {
+      const agenciaData = {
         nome: nomeLoja,
         segmento,
         logoUrl: logoUrl || null,
@@ -191,6 +191,7 @@ const CreateStore = ({ onStoreCreated }) => {
         atualizadaEm: inicioTimestamp,
         categorias: [],
         footer: footerData,
+        tipo: 'agencia_turismo',
         configs: {
           corPrimaria: '#4a6bff',
           corSecundaria: '#2541b2',
@@ -202,15 +203,14 @@ const CreateStore = ({ onStoreCreated }) => {
       if (plano === 'free') {
         usuarioDataUpdate = {
           plano: 'free',
-          planoAtual: 'free',
           planoAtivo: true,
-          emTeste: false,
           testeGratuito: false,
+          emTeste: false,
+          hasUsedTrial: false,
           inicioTeste: null,
           fimTeste: null,
           expiracaoPlano: null,
           dataInicioPlano: inicioTimestamp,
-          hasUsedTrial: false,
           pagamentoConfirmado: false,
           descontoAplicado: false,
           storeCreated: true,
@@ -219,16 +219,15 @@ const CreateStore = ({ onStoreCreated }) => {
         };
       } else {
         usuarioDataUpdate = {
-          plano: plano,
-          planoAtual: plano,
-          planoAtivo: false,
-          emTeste: true,
+          plano,
+          planoAtivo: true,
           testeGratuito: true,
+          emTeste: true,
+          hasUsedTrial: false,
           inicioTeste: inicioTimestamp,
           fimTeste: fimTesteISO,
-          expiracaoPlano: fimTesteISO,
-          dataInicioPlano: null,
-          hasUsedTrial: true,
+          expiracaoPlano: null,
+          dataInicioPlano: inicioTimestamp,
           pagamentoConfirmado: false,
           descontoAplicado: false,
           storeCreated: true,
@@ -238,62 +237,26 @@ const CreateStore = ({ onStoreCreated }) => {
       }
 
       const batch = writeBatch(db);
-      const lojaRef = doc(db, 'lojas', user.uid);
+      const agenciaRef = doc(db, 'lojas', user.uid);
       const userRef = doc(db, 'usuarios', user.uid);
 
-      batch.set(lojaRef, lojaData);
+      batch.set(agenciaRef, agenciaData);
       batch.set(userRef, usuarioDataUpdate, { merge: true });
-
-      // Criação de produto com variantes vazias
-      const produtoRef = doc(collection(db, "lojas", user.uid, "produtos"));
-      await setDoc(produtoRef, {
-        name: "Produto de exemplo",
-        price: "49.99",
-        anchorPrice: "59.99",
-        stock: "55",
-        images: [
-          "https://res.cloudinary.com/doeiv6m4h/image/upload/v1748384587/ojfxb53zx1dv65r9hxj0.webp" 
-        ],
-        category: "Camisa",
-        description: "Este é um produto de exemplo que você pode editar ou deletar",
-        variants: {
-          default: "", // Valor padrão vazio
-          name: "",   // Nome da variante vazio
-          options: []  // Opções vazias
-        },
-        createdAt: inicioTimestamp,
-        updatedAt: inicioTimestamp,
-        slug: "produto-exemplo",
-        ativo: true,
-        prioridade: false,
-        priceConditions: [
-          {
-            quantity: "10",
-            pricePerUnit: "45.99"
-          },
-          {
-            quantity: "20",
-            pricePerUnit: "40.99"
-          }
-        ],
-        isPlaceholder: true
-      });
 
       await batch.commit();
 
+      if (onStoreCreated) onStoreCreated();
       if (jsConfetti) {
         jsConfetti.addConfetti({
-          emojis: ['🛍️', '💰', '🛒', '💳', '✨', '🎉'],
+          emojis: ['🧳', '✈️', '🏝️', '🌎', '🎉'],
           emojiSize: 50,
           confettiNumber: 100,
         });
       }
 
       setShowSuccess(true);
-      if (onStoreCreated) onStoreCreated();
     } catch (err) {
-      console.error('Erro ao criar loja:', err);
-      setErrorMsg(`Erro ao criar loja: ${err.message}. Tente novamente.`);
+      setErrorMsg(`Erro ao criar agência: ${err.message}. Tente novamente.`);
     } finally {
       setLoading(false);
     }
@@ -305,11 +268,11 @@ const CreateStore = ({ onStoreCreated }) => {
         return (
           <div className="step-content-inner">
             <div className="form-group mb-4">
-              <label className="form-label-custom">Nome da Loja*</label>
+              <label className="form-label-custom">Nome da Agência*</label>
               <input
                 value={nomeLoja}
                 onChange={(e) => setNomeLoja(e.target.value)}
-                placeholder="Ex: Loja da Maria"
+                placeholder="Ex: TurFlow Viagens, MundoTur, Roteiros Incríveis"
                 className="form-control-custom"
                 required
                 maxLength={50}
@@ -324,17 +287,17 @@ const CreateStore = ({ onStoreCreated }) => {
         return (
           <div className="step-content-inner">
             <div className="form-group mb-4">
-              <label className="form-label-custom">Segmento*</label>
+              <label className="form-label-custom">Segmento de Turismo*</label>
               <input
                 value={segmento}
                 onChange={(e) => setSegmento(e.target.value)}
-                placeholder="Ex: Roupas, Calçados, Eletrônicos"
+                placeholder="Ex: Ecoturismo, Viagens Corporativas, Pacotes Nacionais, Cruzeiros, etc."
                 className="form-control-custom"
                 required
                 maxLength={30}
               />
               <small className="form-text-custom">
-                Escolha o segmento que melhor descreve seu negócio
+                Escolha o segmento que melhor descreve sua agência
               </small>
             </div>
           </div>
@@ -343,38 +306,64 @@ const CreateStore = ({ onStoreCreated }) => {
         return (
           <div className="step-content-inner">
             <div className="form-group mb-4">
-              <label className="form-label-custom">Logo (Opcional)</label>
+              <label className="form-label-custom">Logo da Agência (Opcional)</label>
               <div className="file-upload-wrapper">
                 <label className="file-upload-label">
                   <FiUpload className="me-2" />
-                  {uploadProgress > 0 && loading ? 'Enviando...' : logoUrl ? 'Alterar Imagem' : 'Selecionar Imagem'}
+                  {uploadProgress > 0 && loading ? 'Enviando...' : logoUrl ? 'Alterar Logo' : 'Selecionar Logo'}
                   <input
-                    type="file" 
-                    onChange={handleFileUpload} 
-                    className="file-upload-input" 
+                    type="file"
                     accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (!file) return;
+                      // ...upload logic...
+                      const uploadPreset = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
+                      const cloudName = process.env.REACT_APP_CLOUD_NAME;
+                      if (!uploadPreset || !cloudName) {
+                        setErrorMsg('Configuração de upload de imagem ausente.');
+                        return;
+                      }
+                      const formData = new FormData();
+                      formData.append('file', file);
+                      formData.append('upload_preset', uploadPreset);
+                      setLoading(true);
+                      setUploadProgress(0);
+                      setErrorMsg('');
+                      try {
+                        const response = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+                          method: 'POST',
+                          body: formData,
+                        });
+                        if (response.ok) {
+                          const data = await response.json();
+                          setLogoUrl(data.secure_url);
+                          setUploadProgress(100);
+                        } else {
+                          const errorData = await response.json();
+                          throw new Error(`Erro no upload: ${errorData.error?.message || response.statusText}`);
+                        }
+                      } catch (err) {
+                        setErrorMsg(`Erro ao enviar imagem: ${err.message}. Tente novamente.`);
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
                     disabled={loading}
                   />
                 </label>
-              </div>
-              {loading && uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="upload-progress mt-3" style={{ textAlign: 'center' }}>
-                  <div style={{ width: `${uploadProgress}%`, background: 'var(--gradient)', height: 8, borderRadius: 4, marginBottom: 4 }} />
-                  <span style={{ fontSize: 14 }}>{uploadProgress}%</span>
-                </div>
-              )}
-              {logoUrl && (
-                <div className="image-preview-wrapper mt-4" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div className="image-preview-container" style={{ maxWidth: 140, maxHeight: 140, width: '100%', height: '100%' }}>
-                    <img
-                      src={logoUrl}
-                      alt="Logo preview"
-                      className="image-preview"
-                      style={{ objectFit: 'contain', width: '100%', height: '100%' }}
-                    />
+                {logoUrl && (
+                  <div style={{ marginTop: 12 }}>
+                    <img src={logoUrl} alt="Logo preview" style={{ maxWidth: 120, maxHeight: 120, borderRadius: 8 }} />
                   </div>
-                </div>
-              )}
+                )}
+                {uploadProgress > 0 && loading && (
+                  <div className="upload-progress">
+                    <div style={{ width: `${uploadProgress}%`, background: '#27ae60', height: 8, borderRadius: 4 }}></div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         );
@@ -432,7 +421,7 @@ const CreateStore = ({ onStoreCreated }) => {
       case 4:
         return (
           <div className="step-content-inner confirmation-step">
-            <h5 className="confirmation-title">Confira os dados da sua loja</h5>
+            <h5 className="confirmation-title">Confira os dados da sua agência</h5>
             <div className="confirmation-card">
               <div className="confirmation-body">
                 <div className="row">

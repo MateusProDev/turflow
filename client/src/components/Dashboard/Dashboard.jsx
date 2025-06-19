@@ -225,7 +225,7 @@ const Dashboard = ({ user }) => {
     { text: "Configurar WhatsApp", icon: <WhatsAppIcon />, allowedPlans: ["free", "plus", "premium"] },
     { text: "Pagamentos", icon: <PointOfSaleIcon />, allowedPlans: ["free", "plus", "premium"] }, // Adicionado ícone
     { text: "Visualizar Loja", icon: <PreviewIcon />, allowedPlans: ["plus", "premium"] },
-    { text: "Upgrade de Plano", icon: <UpgradeIcon />, allowedPlans: ["free", "plus"] },
+    { text: "Upgrade de Plano", icon: <UpgradeIcon />, allowedPlans: ["free", "plus", "premium"] },
   ];
 
   const renderContent = () => {

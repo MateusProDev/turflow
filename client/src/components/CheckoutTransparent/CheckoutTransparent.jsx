@@ -10,18 +10,6 @@ const CheckoutTransparent = ({ currentUser }) => {
   const [paymentStatus, setPaymentStatus] = useState(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!window.MercadoPago) {
-      const script = document.createElement('script');
-      script.src = 'https://sdk.mercadopago.com/js/v2';
-      script.async = true;
-      script.onload = () => {
-        window.mpInstance = new window.MercadoPago(process.env.REACT_APP_MERCADO_PAGO_PUBLIC_KEY, { locale: 'pt-BR' });
-      };
-      document.body.appendChild(script);
-    }
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -30,40 +18,28 @@ const CheckoutTransparent = ({ currentUser }) => {
       return;
     }
 
-    if (!window.mpInstance) {
-      setError('Erro ao carregar o Mercado Pago. Tente novamente.');
-      return;
-    }
-
     setLoading(true);
     setError(null);
 
     try {
-      const response = await axios.post(`${API_BASE_URL}/api/mercadopago`, {
+      const response = await axios.post(`${API_BASE_URL}/api/create-preference`, {
         userId: currentUser.uid,
+        planName: "plus",
         amount: 39.90,
-        description: "Upgrade para Plano Plus"
       });
 
-      const preference = response.data.preference;
+      const { preferenceId, init_point } = response.data;
 
-      if (!preference || !preference.id) {
+      if (init_point) {
+        window.location.href = init_point;
+        return;
+      } else if (preferenceId) {
+        window.location.href = `https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=${preferenceId}`;
+        return;
+      } else {
         setError("Falha ao gerar a preferência de pagamento.");
         return;
       }
-
-      window.mpInstance.checkout({
-        preference: {
-          id: preference.id,
-        },
-        render: {
-          container: '.checkout-container',
-          label: 'Pagar agora',
-        },
-        autoOpen: true,
-      });
-
-      setPaymentStatus('Aguardando pagamento...');
     } catch (err) {
       console.error(err);
       setError('Erro ao processar o pagamento. Tente novamente.');
