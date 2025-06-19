@@ -23,17 +23,17 @@ try {
   } else if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
     console.log("Firebase: Tentando inicializar com GOOGLE_APPLICATION_CREDENTIALS (path)...");
     admin.initializeApp({
-        credential: admin.credential.applicationDefault(),
+      credential: admin.credential.cert(require(process.env.GOOGLE_APPLICATION_CREDENTIALS)),
     });
     console.log('Firebase: Admin SDK inicializado com GOOGLE_APPLICATION_CREDENTIALS (path).');
   } else {
-    console.log("Firebase: Tentando inicializar com config local (FIREBASE_ADMIN_SDK_CONFIG_PATH)...");
-    const serviceAccountPath = process.env.FIREBASE_ADMIN_SDK_CONFIG_PATH || './serviceAccountKey.json';
+    console.log("Firebase: Tentando inicializar com config local (serviceAccountKey.json)...");
+    const serviceAccountPath = __dirname + '/serviceAccountKey.json';
     const serviceAccount = require(serviceAccountPath);
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
-    console.log('Firebase: Admin SDK inicializado com config local.');
+    console.log('Firebase: Admin SDK inicializado com config local serviceAccountKey.json.');
   }
 
   db = admin.firestore();
@@ -99,17 +99,22 @@ app.post('/api/create-preference', async (req, res) => {
     return res.status(400).json({ error: 'Dados incompletos para pagamento de plano' });
   }
 
+  // URLs de fallback para garantir que nunca fiquem undefined
+  const defaultSuccessUrl = `http://turflow.vercel.app/success?userId=${userId}&type=plan_payment`;
+  const defaultFailureUrl = `http://turflow.vercel.app/failure?userId=${userId}&type=plan_payment`;
+  const defaultPendingUrl = `http://turflow.vercel.app/pending?userId=${userId}&type=plan_payment`;
+
   const preference = {
     items: [{
-        title: `Plano ${planName} StoreSync`,
-        quantity: 1,
-        unit_price: parseFloat(amount),
-        currency_id: 'BRL',
+      title: `Plano ${planName} StoreSync`,
+      quantity: 1,
+      unit_price: parseFloat(amount),
+      currency_id: 'BRL',
     }],
     back_urls: {
-      success: `http://turflow.vercel.app/success?userId=${userId}&type=plan_payment`,
-      failure: `http://turflow.vercel.app/failure?userId=${userId}&type=plan_payment`,
-      pending: `http://turflow.vercel.app/pending?userId=${userId}&type=plan_payment`,
+      success: defaultSuccessUrl,
+      failure: defaultFailureUrl,
+      pending: defaultPendingUrl,
     },
     auto_return: 'approved',
     notification_url: `${process.env.BASE_API_URL}/api/mp-platform-webhook`,
