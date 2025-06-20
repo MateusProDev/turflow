@@ -60,7 +60,7 @@ const EditBanner = ({
   const bannerLimit = getPlanBannerLimit();
   const remainingBanners = bannerLimit - bannerImages.length;
 
-  // Fetch banners from Firestore
+  // Carrega banners do Firestore como array
   useEffect(() => {
     const fetchBanners = async () => {
       if (!currentUser?.uid) {
@@ -68,99 +68,67 @@ const EditBanner = ({
         setLoading(false);
         return;
       }
-
       try {
         setLoading(true);
         const storeDoc = await getDoc(doc(db, "lojas", currentUser.uid));
-
         if (storeDoc.exists()) {
           const storeData = storeDoc.data();
-          if (storeData.bannerImages) {
-            const bannersArray = Object.entries(storeData.bannerImages).reduce(
-              (acc, [key, banner]) => {
-                if (banner && typeof banner === "object" && banner.url) {
-                  acc.push({ ...banner, key });
-                }
-                return acc;
-              },
-              []
+          // Sempre trate como array
+          let bannersArr = [];
+          if (Array.isArray(storeData.bannerImages)) {
+            bannersArr = storeData.bannerImages;
+          } else if (
+            storeData.bannerImages &&
+            typeof storeData.bannerImages === "object"
+          ) {
+            bannersArr = Object.values(storeData.bannerImages).filter(
+              (b) => b && b.url
             );
-            bannersArray.sort((a, b) => a.position - b.position);
-            setBannerImages(bannersArray);
           }
+          setBannerImages(bannersArr);
         }
       } catch (error) {
-        console.error("Erro ao carregar banners:", error);
-        setUploadError(
-          error.code === "permission-denied"
-            ? "Permissão negada ao acessar banners"
-            : "Erro ao carregar os banners"
-        );
+        setUploadError("Erro ao carregar os banners");
       } finally {
         setLoading(false);
       }
     };
 
     fetchBanners();
-  }, [currentUser]);
+  }, [currentUser, setBannerImages]);
 
-  // Save banner changes to Firestore
+  // Salva banners como array no Firestore
   const saveBannerChanges = async (updatedBanners) => {
     try {
-      const bannerMap = updatedBanners.reduce((acc, banner) => {
-        const { key, ...bannerData } = banner;
-        acc[key] = bannerData;
-        return acc;
-      }, {});
-
       await updateDoc(doc(db, "lojas", currentUser.uid), {
-        bannerImages: bannerMap,
+        bannerImages: updatedBanners,
       });
+      setBannerImages(updatedBanners);
       return true;
     } catch (error) {
-      console.error("Erro ao salvar banners:", error);
-      setUploadError(
-        error.code === "permission-denied"
-          ? "Permissão negada ao salvar banners"
-          : "Erro ao salvar as imagens do banner"
-      );
+      setUploadError("Erro ao salvar as imagens do banner");
       return false;
     }
   };
 
-  // Handle adding a new banner
-  const handleAddBanner = (url) => {
+  // Adiciona novo banner (apenas URL)
+  const handleAddBanner = () => {
+    if (!newBannerImage) return;
     if (bannerImages.length >= bannerLimit) {
       setUploadError(`Seu plano ${userPlan} permite apenas ${bannerLimit} banner(s)`);
       return;
     }
-
-    const newBanner = {
-      url,
-      key: generateId(),
-      active: true,
-      addedAt: new Date(),
-      position: bannerImages.length + 1,
-      alt: "",
-      linkTo: "",
-    };
-    setCurrentBanner(newBanner);
-    setBannerFormData({ alt: "", linkTo: "" });
-    setOpenDialog(true);
+    const newBanner = { url: newBannerImage, alt: "", linkTo: "" };
+    const updatedBanners = [...bannerImages, newBanner];
+    saveBannerChanges(updatedBanners);
+    setNewBannerImage("");
+    setUploadError("");
   };
 
-  // Generate unique ID
-  const generateId = () => {
-    return Math.random().toString(36).substring(2, 15);
-  };
-
-  // Handle removing a banner
-  const handleRemoveBanner = async (index) => {
-    const updatedBanners = bannerImages
-      .filter((_, i) => i !== index)
-      .map((banner, idx) => ({ ...banner, position: idx + 1 }));
-    setBannerImages(updatedBanners);
-    await saveBannerChanges(updatedBanners);
+  // Remove banner pelo índice
+  const handleRemoveBanner = (index) => {
+    const updatedBanners = bannerImages.filter((_, i) => i !== index);
+    saveBannerChanges(updatedBanners);
     setUploadError("");
   };
 
@@ -270,7 +238,7 @@ const EditBanner = ({
               <Button
                 variant="contained"
                 color="primary"
-                onClick={onAddBanner}
+                onClick={handleAddBanner}
                 disabled={!newBannerImage}
                 sx={{ mt: 2 }}
                 className={styles.addButton}
@@ -283,7 +251,7 @@ const EditBanner = ({
           {bannerImages.length > 0 ? (
             <Grid container spacing={2} className={styles.bannerGrid}>
               {bannerImages.map((banner, idx) => (
-                <Grid item xs={12} sm={6} md={4} key={banner.key}>
+                <Grid item xs={12} sm={6} md={4} key={banner.url || idx}>
                   <Card className={styles.card}>
                     <CardMedia
                       component="img"
