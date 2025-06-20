@@ -31,9 +31,8 @@ function debounce(func, delay) {
 const Lojinha = ({
   lojaId,
   lojaData, // <-- ADICIONADO: Recebe lojaData como prop
-  logoUrl, // Prop inicial, pode ser sobrescrita pelo Firestore
+  logoUrl,
   menuItems = [],
-  // footerInfo não é mais necessário se buscamos tudo
 }) => {
   const [cart, setCart] = useState(() => {
     // Tenta carregar o carrinho do localStorage ao iniciar (Corrigido para usar lojaId)
@@ -55,7 +54,7 @@ const Lojinha = ({
   const navigate = useNavigate();
   const { slug } = useParams(); // Pega o 'slug' da URL (se estiver usando)
   const [storeData, setStoreData] = useState(lojaData || null); // Armazena todos os dados da loja
-  const [loading, setLoading] = useState(true); // <-- ADICIONADO: Estado de Carregamento
+  const [loading, setLoading] = useState(!lojaData); // Só carrega se não veio lojaData
   const [error, setError] = useState(null); // <-- ADICIONADO: Estado de Erro
 
   // <-- ADICIONADO: Estados para o checkout -->
@@ -65,6 +64,12 @@ const Lojinha = ({
 
   // Efeito para buscar dados iniciais da loja
   useEffect(() => {
+    if (lojaData) {
+      setStoreData(lojaData);
+      setLoading(false);
+      return;
+    }
+
     async function fetchStoreData() {
       if (!lojaId) {
         console.warn("lojaId não foi fornecido ao componente Lojinha.");
