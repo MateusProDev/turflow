@@ -60,12 +60,13 @@ const Lojinha = ({
   // Sincroniza todos os estados principais ao receber lojaData (domínio customizado)
   useEffect(() => {
     if (lojaData) {
+      console.log("[DEBUG] Lojinha: Sincronizando dados da loja recebidos via props:", lojaData);
       setStoreData(lojaData);
       setNomeLoja(lojaData.nome || "Minha Loja");
-      setLogoUrlState(lojaData.logoUrl || logoUrl || "");
+      setLogoUrlState(lojaData.logoUrl || "");
       setExibirLogo(lojaData.exibirLogo !== false);
-      setCategorias(lojaData.categorias || []);
-      setImgCategorias(lojaData.imgcategorias || []);
+      setCategorias(Array.isArray(lojaData.categorias) ? lojaData.categorias : []);
+      setImgCategorias(Array.isArray(lojaData.imgcategorias) ? lojaData.imgcategorias : []);
       setBannerImages(
         Array.isArray(lojaData.bannerImages)
           ? lojaData.bannerImages.filter(Boolean)
@@ -75,92 +76,77 @@ const Lojinha = ({
       );
       setLoading(false);
     }
-  }, [lojaData, logoUrl]);
+  }, [lojaData]);
 
-  // Efeito para buscar dados iniciais da loja
+  // Efeito para buscar dados iniciais da loja (apenas se NÃO veio lojaData)
   useEffect(() => {
-    if (lojaData) {
-      setStoreData(lojaData);
+    if (lojaData) return; // Nunca sobrescreva se já veio lojaData
+
+    if (!lojaId) {
+      setError("ID da loja não fornecido.");
       setLoading(false);
       return;
     }
-
+    setLoading(true);
+    setError(null);
     async function fetchStoreData() {
-      if (!lojaId) {
-        console.warn("lojaId não foi fornecido ao componente Lojinha.");
-        setError("ID da loja não fornecido."); // Define erro
-        setLoading(false); // Para carregamento
-        return;
-      }
-      setLoading(true); // Inicia carregamento
-      setError(null); // Limpa erro anterior
       try {
         const lojaRef = doc(db, "lojas", lojaId);
         const lojaSnap = await getDoc(lojaRef);
         if (lojaSnap.exists()) {
           const lojaData = lojaSnap.data();
-          setStoreData(lojaData); // Armazena todos os dados
+          setStoreData(lojaData);
           setNomeLoja(lojaData.nome || "Minha Loja");
-          setLogoUrlState(lojaData.logoUrl || logoUrl || "");
+          setLogoUrlState(lojaData.logoUrl || "");
           setExibirLogo(lojaData.exibirLogo !== false);
-
-          // Processa banners (com lógica aprimorada)
-          if (lojaData.bannerImages) {
-            const banners = Array.isArray(lojaData.bannerImages)
-              ? lojaData.bannerImages.map(b => (typeof b === 'string' ? b : b.url))
+          setCategorias(Array.isArray(lojaData.categorias) ? lojaData.categorias : []);
+          setImgCategorias(Array.isArray(lojaData.imgcategorias) ? lojaData.imgcategorias : []);
+          setBannerImages(
+            Array.isArray(lojaData.bannerImages)
+              ? lojaData.bannerImages.filter(Boolean)
               : typeof lojaData.bannerImages === 'object'
-                ? Object.values(lojaData.bannerImages).map(b => (typeof b === 'string' ? b : b.url))
-                : [];
-            setBannerImages(banners.filter(Boolean)); // Filtra URLs vazias/inválidas
-          } else {
-            setBannerImages([]);
-          }
-
-          // Processa categorias e imagens
-          setCategorias(lojaData.categorias || []);
-          setImgCategorias(lojaData.imgcategorias || []);
-
+                ? Object.values(lojaData.bannerImages).filter(Boolean)
+                : []
+          );
         } else {
-          console.warn(`Loja com ID ${lojaId} não encontrada.`);
-          setError(`Loja não encontrada.`); // Define erro
+          setError("Loja não encontrada.");
         }
       } catch (error) {
-        console.error("Erro ao buscar dados da loja:", error);
-        setError("Erro ao carregar dados da loja."); // Define erro
+        setError("Erro ao carregar dados da loja.");
       } finally {
-        setLoading(false); // Finaliza carregamento
+        setLoading(false);
       }
     }
-    if (!lojaData) {
-      fetchStoreData();
-    } else {
-      setLoading(false); // Se lojaData foi passado, não precisa carregar do Firestore
-    }
-  }, [lojaId, logoUrl, lojaData]); // Depende do lojaId e logoUrl inicial
+    fetchStoreData();
+  }, [lojaId, lojaData]);
 
   // Efeito para ouvir produtos em tempo real
   useEffect(() => {
-    if (!lojaId) return;
+    if (!lojaId) {
+      console.warn("[DEBUG] Lojinha: lojaId não definido, não irá buscar produtos.");
+      return;
+    }
+    console.log("[DEBUG] Lojinha: Buscando produtos para lojaId =", lojaId);
 
     const q = query(collection(db, `lojas/${lojaId}/produtos`));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const produtos = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+
+      // Log para depuração
+      console.log("[DEBUG] Lojinha: Produtos encontrados:", produtos);
 
       // Filtra e ordena produtos
       const produtosAtivos = produtos.filter(p => p.ativo !== false);
       const produtosOrdenados = [...produtosAtivos].sort((a, b) => {
         if (a.prioridade === true && (b.prioridade !== true)) return -1;
         if ((a.prioridade !== true) && b.prioridade === true) return 1;
-        // Adicione outros critérios de ordenação se necessário
         return 0;
       });
 
       // Agrupa produtos por categoria
       const agrupados = {};
       produtosOrdenados.forEach(prod => {
-        // Assume que o campo de categoria é 'category'
-        // Assume que o nome do produto é 'name' (verifique se é 'nome' no seu DB)
-        const cat = prod.category || "Outros"; // Categoria padrão
+        const cat = prod.category || "Outros";
         if (!agrupados[cat]) agrupados[cat] = [];
         agrupados[cat].push(prod);
       });
@@ -170,8 +156,8 @@ const Lojinha = ({
       console.error("Erro ao buscar produtos em tempo real:", error);
     });
 
-    return () => unsubscribe(); // Limpa o listener ao desmontar
-  }, [lojaId]);
+    return () => unsubscribe();
+  }, [lojaId]); // <-- Certifique-se que depende de lojaId
 
   // Efeito para persistir o carrinho no localStorage
   useEffect(() => {
