@@ -325,7 +325,7 @@ app.use(async (req, res, next) => {
     host.endsWith('onrender.com') // <- ignora chamadas diretas ao backend
   ) {
     return next();
-  }
+  } 
 
   // Para testes locais, permita simular domínio customizado via hosts ou query
   if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
