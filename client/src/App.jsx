@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { db } from './firebaseConfig';
 import { Spinner } from 'react-bootstrap';
 import '@fortawesome/fontawesome-free/css/all.min.css'; 
+import { useRef } from "react";
 
 // Components
 import HomePage from './components/HomePage/HomePage';
@@ -66,9 +67,11 @@ const AppContent = () => {
   const [user, setUser] = useState(null);
   const [hasStore, setHasStore] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [customDomainChecked, setCustomDomainChecked] = useState(false);
   const auth = getAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const customDomainRedirected = useRef(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -100,6 +103,37 @@ const AppContent = () => {
     return () => unsubscribe();
   }, [auth]);
 
+  useEffect(() => {
+    // Detecta se está em domínio customizado (não .vercel.app, não localhost)
+    const host = window.location.host;
+    const isCustomDomain =
+      !host.endsWith("vercel.app") &&
+      !host.includes("localhost") &&
+      !host.includes("127.0.0.1") &&
+      !host.endsWith("onrender.com");
+
+    if (isCustomDomain && !customDomainChecked && !customDomainRedirected.current) {
+      fetch("/public/loja")
+        .then(async (res) => {
+          if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.slug) {
+            customDomainRedirected.current = true;
+            window.location.replace("/" + data.slug);
+          } else {
+            setCustomDomainChecked(true);
+          }
+        })
+        .catch(() => {
+          setCustomDomainChecked(true);
+        });
+    } else {
+      setCustomDomainChecked(true);
+    }
+  }, [customDomainChecked]);
+
   // Mostra um spinner enquanto verifica o status de autenticação
   if (loading) {
     return (
@@ -107,6 +141,34 @@ const AppContent = () => {
         <Spinner animation="border" variant="primary" role="status">
           <span className="visually-hidden">Carregando...</span>
         </Spinner>
+      </div>
+    );
+  }
+
+  // Mostra mensagem amigável se domínio customizado não encontrado
+  if (!customDomainChecked) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner animation="border" variant="primary" role="status">
+          <span className="visually-hidden">Carregando...</span>
+        </Spinner>
+      </div>
+    );
+  }
+  if (
+    typeof window !== "undefined" &&
+    !window.location.host.endsWith("vercel.app") &&
+    !window.location.host.includes("localhost") &&
+    !window.location.host.includes("onrender.com") &&
+    customDomainChecked &&
+    !customDomainRedirected.current
+  ) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <div>
+          <h2>Loja não encontrada para este domínio.</h2>
+          <p>Verifique se o domínio está corretamente configurado ou tente novamente mais tarde.</p>
+        </div>
       </div>
     );
   }
