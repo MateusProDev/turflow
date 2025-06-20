@@ -112,7 +112,7 @@ const AppContent = () => {
       !host.includes("127.0.0.1") &&
       !host.endsWith("onrender.com");
 
-    if (isCustomDomain && !customDomainChecked && !customDomainRedirected.current) {
+    if (isCustomDomain && !customDomainChecked) {
       fetch("/public/loja")
         .then(async (res) => {
           if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
@@ -171,21 +171,14 @@ const AppContent = () => {
     );
   }
 
-  // Se está em domínio customizado e encontrou a loja, renderiza direto
-  if (
-    typeof window !== "undefined" &&
-    !window.location.host.endsWith("vercel.app") &&
-    !window.location.host.includes("localhost") &&
-    !window.location.host.includes("onrender.com") &&
-    customDomainChecked &&
-    customDomainLoja
-  ) {
-    return <Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />;
-  }
-
   return (
     <UserPlanProvider>
       <Routes location={location}>
+        {/* Rota especial: se domínio customizado e loja encontrada, renderiza a loja na raiz */}
+        {customDomainLoja && (
+          <Route path="/" element={<Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
+        )}
+
         {/* Rotas públicas */}
         <Route path="/" element={<HomePage />} />
 

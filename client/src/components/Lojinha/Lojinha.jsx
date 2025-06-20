@@ -30,6 +30,7 @@ function debounce(func, delay) {
 
 const Lojinha = ({
   lojaId,
+  lojaData, // <-- ADICIONADO: Recebe lojaData como prop
   logoUrl, // Prop inicial, pode ser sobrescrita pelo Firestore
   menuItems = [],
   // footerInfo não é mais necessário se buscamos tudo
@@ -53,7 +54,7 @@ const Lojinha = ({
   const [logoUrlState, setLogoUrlState] = useState(logoUrl || "");
   const navigate = useNavigate();
   const { slug } = useParams(); // Pega o 'slug' da URL (se estiver usando)
-  const [storeData, setStoreData] = useState(null); // Armazena todos os dados da loja
+  const [storeData, setStoreData] = useState(lojaData || null); // Armazena todos os dados da loja
   const [loading, setLoading] = useState(true); // <-- ADICIONADO: Estado de Carregamento
   const [error, setError] = useState(null); // <-- ADICIONADO: Estado de Erro
 
@@ -110,8 +111,12 @@ const Lojinha = ({
         setLoading(false); // Finaliza carregamento
       }
     }
-    fetchStoreData();
-  }, [lojaId, logoUrl]); // Depende do lojaId e logoUrl inicial
+    if (!lojaData) {
+      fetchStoreData();
+    } else {
+      setLoading(false); // Se lojaData foi passado, não precisa carregar do Firestore
+    }
+  }, [lojaId, logoUrl, lojaData]); // Depende do lojaId e logoUrl inicial
 
   // Efeito para ouvir produtos em tempo real
   useEffect(() => {
