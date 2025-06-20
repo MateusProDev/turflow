@@ -315,8 +315,18 @@ app.post('/api/loja/custom-domain', async (req, res) => {
 
 // Middleware: identifica loja pelo domínio customizado (aceita localhost para testes)
 app.use(async (req, res, next) => {
-  let host = req.headers.host?.replace(/^www\./, '').toLowerCase();
+  console.log("DEBUG HEADERS:", req.headers);
+  let host = (req.headers['x-forwarded-host'] || req.headers.host || '').replace(/^www\./, '').toLowerCase();
   console.log("DEBUG domínio customizado buscado:", host);
+
+  // Se for domínio principal (turflow.vercel.app) ou backend (storesync.onrender.com), não tenta buscar loja customizada
+  if (
+    host.endsWith('turflow.vercel.app') ||
+    host.endsWith('onrender.com') // <- ignora chamadas diretas ao backend
+  ) {
+    return next();
+  }
+
   // Para testes locais, permita simular domínio customizado via hosts ou query
   if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
     if (req.query.customDomain) {
@@ -326,6 +336,7 @@ app.use(async (req, res, next) => {
       return next();
     }
   }
+
   try {
     const snapshot = await db.collection('lojas')
       .where('customDomain', '==', host)
@@ -463,4 +474,4 @@ app.post('/api/loja/forcar-vercel-domain', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Servidor StoreSync rodando na porta ${PORT}`);
-}); 
+});

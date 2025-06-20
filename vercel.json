@@ -7,6 +7,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://storesync.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
     }
   ]
 }
