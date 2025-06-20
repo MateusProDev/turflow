@@ -5,6 +5,12 @@ require('dotenv').config();
 const admin = require('firebase-admin');
 const axios = require('axios');
 
+// --- ADICIONE ISSO LOGO APÓS OS REQUIRES ---
+const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
+const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
+const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID;
+// --- FIM DO BLOCO ---
+
 console.log("--- INICIANDO ARQUIVO server.js (VERSÃO COM LOGS DETALHADOS STORESYNC) ---"); // Log de versão
 
 const app = express();
@@ -220,6 +226,8 @@ app.post('/api/mercadopago', async (req, res) => {
 // --- ROTA PRINCIPAL PARA DOMÍNIO CUSTOMIZADO (salva Firestore + adiciona na Vercel) ---
 app.post('/api/loja/custom-domain', async (req, res) => {
   const { lojaId, domain } = req.body;
+  console.log("Recebido pedido para custom-domain:", { lojaId, domain });
+
   if (!lojaId || !domain) {
     return res.status(400).json({ message: 'lojaId e domain são obrigatórios.' });
   }
@@ -248,6 +256,7 @@ app.post('/api/loja/custom-domain', async (req, res) => {
 
   // Tenta adicionar na Vercel
   try {
+    console.log("Enviando domínio para Vercel...");
     const vercelApiUrl = `https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/domains${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`;
     const response = await axios.post(
       vercelApiUrl,
@@ -259,6 +268,7 @@ app.post('/api/loja/custom-domain', async (req, res) => {
         },
       }
     );
+    console.log("Resposta da Vercel:", response.data);
     // Atualiza Firestore com status da Vercel
     await db.collection('lojas').doc(lojaId).update({
       vercelDomainStatus: response.data,
@@ -270,6 +280,7 @@ app.post('/api/loja/custom-domain', async (req, res) => {
       vercelResponse: response.data,
     });
   } catch (err) {
+    console.error("Erro ao adicionar domínio na Vercel:", err.response?.data || err.message);
     let apiError = err.response?.data?.error?.message || err.response?.data?.error || err.message;
     await db.collection('lojas').doc(lojaId).update({
       vercelDomainStatus: { error: apiError },
