@@ -30,7 +30,7 @@ function debounce(func, delay) {
 
 const Lojinha = ({
   lojaId,
-  lojaData, // <-- ADICIONADO: Recebe lojaData como prop
+  lojaData,
   logoUrl,
   menuItems = [],
 }) => {
@@ -53,14 +53,29 @@ const Lojinha = ({
   const [logoUrlState, setLogoUrlState] = useState(logoUrl || "");
   const navigate = useNavigate();
   const { slug } = useParams(); // Pega o 'slug' da URL (se estiver usando)
-  const [storeData, setStoreData] = useState(lojaData || null); // Armazena todos os dados da loja
-  const [loading, setLoading] = useState(!lojaData); // Só carrega se não veio lojaData
-  const [error, setError] = useState(null); // <-- ADICIONADO: Estado de Erro
+  const [storeData, setStoreData] = useState(lojaData || null);
+  const [loading, setLoading] = useState(!lojaData);
+  const [error, setError] = useState(null);
 
-  // <-- ADICIONADO: Estados para o checkout -->
-  const [loadingCheckout, setLoadingCheckout] = useState(false);
-  const [checkoutError, setCheckoutError] = useState(null);
-  // <-- FIM ADIÇÃO -->
+  // Sincroniza todos os estados principais ao receber lojaData (domínio customizado)
+  useEffect(() => {
+    if (lojaData) {
+      setStoreData(lojaData);
+      setNomeLoja(lojaData.nome || "Minha Loja");
+      setLogoUrlState(lojaData.logoUrl || logoUrl || "");
+      setExibirLogo(lojaData.exibirLogo !== false);
+      setCategorias(lojaData.categorias || []);
+      setImgCategorias(lojaData.imgcategorias || []);
+      setBannerImages(
+        Array.isArray(lojaData.bannerImages)
+          ? lojaData.bannerImages.filter(Boolean)
+          : typeof lojaData.bannerImages === 'object'
+            ? Object.values(lojaData.bannerImages).filter(Boolean)
+            : []
+      );
+      setLoading(false);
+    }
+  }, [lojaData, logoUrl]);
 
   // Efeito para buscar dados iniciais da loja
   useEffect(() => {
