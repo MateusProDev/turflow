@@ -331,6 +331,8 @@ const Lojinha = ({
             products={produtos}
             onAddToCart={handleAddToCart}
             navigate={navigate}
+            // Passe imgCategorias para ProductSection se quiser mostrar imagem da categoria
+            imgCategoria={imgCategorias.find(c => c.nome === nome)?.imagem || ""}
           />
         ) : null;
       });
@@ -476,13 +478,13 @@ const Lojinha = ({
             {categorias.map(cat => {
               const nome = typeof cat === "string" ? cat : cat.nome;
               const key = (typeof cat === 'object' && cat.id) ? cat.id : nome;
+              // Busca a imagem da categoria pelo nome
               const imgCat = imgCategorias.find(c => c.nome === nome);
               return (
                 <button
                   key={key}
                   className="lojinha-categoria-btn"
                   onClick={() => {
-                    // Alterado para usar navigate e ir para a rota da categoria
                     navigate(`/${slug}/categoria/${encodeURIComponent(nome.toLowerCase())}`);
                   }}
                   title={`Ver categoria ${nome}`}
