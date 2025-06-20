@@ -18,7 +18,7 @@ const app = express();
 // --- INÍCIO: Inicialização do Firebase Admin SDK COM LOGS DETALHADOS ---
 console.log("--- TENTANDO INICIALIZAR FIREBASE ADMIN SDK ---");
 let db;
-
+ 
 try {
   if (process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON) {
     console.log("Firebase: Tentando inicializar com GOOGLE_APPLICATION_CREDENTIALS_JSON...");
