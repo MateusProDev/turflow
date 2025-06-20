@@ -235,7 +235,7 @@ app.post('/api/loja/custom-domain', async (req, res) => {
     return res.status(500).json({ message: 'Configuração da Vercel ausente. Contate o suporte.' });
   }
 
-  // Busca o slug da loja para montar o redirect
+  // Busca o slug da loja (opcional, mas não será usado para redirect)
   let lojaSlug = null;
   try {
     const lojaDoc = await db.collection('lojas').doc(lojaId).get();
@@ -268,16 +268,13 @@ app.post('/api/loja/custom-domain', async (req, res) => {
     domainLastUpdate: new Date(),
   }, { merge: true });
 
-  // Tenta adicionar na Vercel com redirect para o path da loja
+  // Tenta adicionar na Vercel (sem redirect)
   try {
     console.log("Enviando domínio para Vercel...");
     const vercelApiUrl = `https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/domains${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`;
     const response = await axios.post(
       vercelApiUrl,
-      {
-        name: domain,
-        redirect: `/` + lojaSlug // redireciona para /slug da loja
-      },
+      { name: domain },
       {
         headers: {
           Authorization: `Bearer ${VERCEL_TOKEN}`,
