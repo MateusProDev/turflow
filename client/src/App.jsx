@@ -75,10 +75,12 @@ const AppContent = () => {
   const customDomainRedirected = useRef(false);
 
   useEffect(() => {
+    console.log("[DEBUG] AppContent: Iniciando verificação de autenticação...");
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
 
       if (currentUser) {
+        console.log("[DEBUG] AppContent: Usuário autenticado:", currentUser.uid);
         // Verifica plano do usuário
         await verificarPlanoUsuario(currentUser.uid);
 
@@ -93,8 +95,10 @@ const AppContent = () => {
 
         // Define se o usuário tem loja criada
         setHasStore(!!(userData.storeCreated || storeExists));
+        console.log("[DEBUG] AppContent: hasStore =", !!(userData.storeCreated || storeExists));
       } else {
         setHasStore(false);
+        console.log("[DEBUG] AppContent: Usuário não autenticado");
       }
 
       setLoading(false);
@@ -112,19 +116,25 @@ const AppContent = () => {
       !host.includes("127.0.0.1") &&
       !host.endsWith("onrender.com");
 
+    console.log("[DEBUG] AppContent: host =", host, "isCustomDomain =", isCustomDomain);
+
     if (isCustomDomain && !customDomainChecked) {
+      console.log("[DEBUG] AppContent: Buscando loja para domínio customizado...");
       fetch("/public/loja")
         .then(async (res) => {
+          console.log("[DEBUG] /public/loja status:", res.status);
           if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
           return res.json();
         })
         .then((data) => {
+          console.log("[DEBUG] /public/loja data:", data);
           if (data && data.lojaId && data.loja) {
             setCustomDomainLoja({ lojaId: data.lojaId, loja: data.loja });
           }
           setCustomDomainChecked(true);
         })
-        .catch(() => {
+        .catch((err) => {
+          console.log("[DEBUG] /public/loja erro:", err);
           setCustomDomainChecked(true);
         });
     } else {
@@ -134,6 +144,7 @@ const AppContent = () => {
 
   // Mostra um spinner enquanto verifica o status de autenticação
   if (loading) {
+    console.log("[DEBUG] AppContent: loading...");
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <Spinner animation="border" variant="primary" role="status">
@@ -145,6 +156,7 @@ const AppContent = () => {
 
   // Mostra mensagem amigável se domínio customizado não encontrado
   if (!customDomainChecked) {
+    console.log("[DEBUG] AppContent: customDomainChecked = false, aguardando verificação...");
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <Spinner animation="border" variant="primary" role="status">
@@ -159,8 +171,10 @@ const AppContent = () => {
     !window.location.host.includes("localhost") &&
     !window.location.host.includes("onrender.com") &&
     customDomainChecked &&
-    !customDomainRedirected.current
+    !customDomainRedirected.current &&
+    !customDomainLoja
   ) {
+    console.log("[DEBUG] AppContent: Domínio customizado, mas loja não encontrada!");
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <div>
@@ -169,6 +183,18 @@ const AppContent = () => {
         </div>
       </div>
     );
+  }
+
+  if (
+    typeof window !== "undefined" &&
+    !window.location.host.endsWith("vercel.app") &&
+    !window.location.host.includes("localhost") &&
+    !window.location.host.includes("onrender.com") &&
+    customDomainChecked &&
+    customDomainLoja
+  ) {
+    console.log("[DEBUG] AppContent: Renderizando Lojinha para domínio customizado:", customDomainLoja);
+    return <Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />;
   }
 
   return (

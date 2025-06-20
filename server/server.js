@@ -321,6 +321,7 @@ app.use(async (req, res, next) => {
   if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
     if (req.query.customDomain) {
       host = req.query.customDomain.toLowerCase();
+      console.log("DEBUG domínio customizado (query):", host);
     } else {
       return next();
     }
@@ -331,10 +332,15 @@ app.use(async (req, res, next) => {
       .limit(1)
       .get();
 
+    console.log("DEBUG Firestore where customDomain == host, snapshot.empty:", snapshot.empty);
+
     if (!snapshot.empty) {
       req.lojaCustomizada = snapshot.docs[0].data();
       req.lojaIdCustomizada = snapshot.docs[0].id;
       req.lojaSlugCustomizada = snapshot.docs[0].data().slug;
+      console.log("DEBUG Loja encontrada:", req.lojaIdCustomizada, req.lojaCustomizada.slug);
+    } else {
+      console.log("DEBUG Nenhuma loja encontrada para host:", host);
     }
   } catch (e) {
     console.error('Erro ao buscar loja pelo domínio customizado:', e.message);
@@ -345,8 +351,10 @@ app.use(async (req, res, next) => {
 // Rota pública que serve os dados da loja pelo domínio customizado
 app.get('/public/loja', async (req, res) => {
   if (!req.lojaCustomizada) {
+    console.log("DEBUG /public/loja: Loja não encontrada para este domínio.");
     return res.status(404).json({ message: 'Loja não encontrada para este domínio.' });
   }
+  console.log("DEBUG /public/loja: Loja encontrada, retornando dados:", req.lojaIdCustomizada, req.lojaCustomizada.slug);
   res.json({
     lojaId: req.lojaIdCustomizada,
     loja: req.lojaCustomizada,
