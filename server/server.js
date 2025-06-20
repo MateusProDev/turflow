@@ -235,6 +235,20 @@ app.post('/api/loja/custom-domain', async (req, res) => {
     return res.status(500).json({ message: 'Configuração da Vercel ausente. Contate o suporte.' });
   }
 
+  // Busca o slug da loja para montar o redirect
+  let lojaSlug = null;
+  try {
+    const lojaDoc = await db.collection('lojas').doc(lojaId).get();
+    if (lojaDoc.exists) {
+      lojaSlug = lojaDoc.data().slug;
+    }
+  } catch (e) {
+    console.error("Erro ao buscar slug da loja:", e.message);
+  }
+  if (!lojaSlug) {
+    return res.status(400).json({ message: 'Slug da loja não encontrado.' });
+  }
+
   // Gera instruções DNS
   const isRootDomain = !domain.startsWith('www.') && domain.split('.').length === 2;
   const vercelCname = 'cname.vercel-dns.com.';
@@ -254,13 +268,16 @@ app.post('/api/loja/custom-domain', async (req, res) => {
     domainLastUpdate: new Date(),
   }, { merge: true });
 
-  // Tenta adicionar na Vercel
+  // Tenta adicionar na Vercel com redirect para o path da loja
   try {
     console.log("Enviando domínio para Vercel...");
     const vercelApiUrl = `https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/domains${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`;
     const response = await axios.post(
       vercelApiUrl,
-      { name: domain },
+      {
+        name: domain,
+        redirect: `/` + lojaSlug // redireciona para /slug da loja
+      },
       {
         headers: {
           Authorization: `Bearer ${VERCEL_TOKEN}`,
@@ -295,7 +312,6 @@ app.use(async (req, res, next) => {
   let host = req.headers.host?.replace(/^www\./, '').toLowerCase();
   // Para testes locais, permita simular domínio customizado via hosts ou query
   if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
-    // Permite testar com ?customDomain=seudominio.com.br
     if (req.query.customDomain) {
       host = req.query.customDomain.toLowerCase();
     } else {
@@ -311,6 +327,7 @@ app.use(async (req, res, next) => {
     if (!snapshot.empty) {
       req.lojaCustomizada = snapshot.docs[0].data();
       req.lojaIdCustomizada = snapshot.docs[0].id;
+      req.lojaSlugCustomizada = snapshot.docs[0].data().slug;
     }
   } catch (e) {
     console.error('Erro ao buscar loja pelo domínio customizado:', e.message);
@@ -318,7 +335,7 @@ app.use(async (req, res, next) => {
   next();
 });
 
-// Exemplo de rota pública que usa o domínio customizado
+// Rota pública que serve os dados da loja pelo domínio customizado
 app.get('/public/loja', async (req, res) => {
   if (!req.lojaCustomizada) {
     return res.status(404).json({ message: 'Loja não encontrada para este domínio.' });
@@ -326,6 +343,7 @@ app.get('/public/loja', async (req, res) => {
   res.json({
     lojaId: req.lojaIdCustomizada,
     loja: req.lojaCustomizada,
+    slug: req.lojaSlugCustomizada,
   });
 });
 
