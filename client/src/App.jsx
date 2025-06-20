@@ -68,6 +68,7 @@ const AppContent = () => {
   const [hasStore, setHasStore] = useState(false);
   const [loading, setLoading] = useState(true);
   const [customDomainChecked, setCustomDomainChecked] = useState(false);
+  const [customDomainLoja, setCustomDomainLoja] = useState(null);
   const auth = getAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -104,7 +105,6 @@ const AppContent = () => {
   }, [auth]);
 
   useEffect(() => {
-    // Detecta se está em domínio customizado (não .vercel.app, não localhost)
     const host = window.location.host;
     const isCustomDomain =
       !host.endsWith("vercel.app") &&
@@ -119,12 +119,10 @@ const AppContent = () => {
           return res.json();
         })
         .then((data) => {
-          if (data && data.slug) {
-            customDomainRedirected.current = true;
-            window.location.replace("/" + data.slug);
-          } else {
-            setCustomDomainChecked(true);
+          if (data && data.lojaId && data.loja) {
+            setCustomDomainLoja({ lojaId: data.lojaId, loja: data.loja });
           }
+          setCustomDomainChecked(true);
         })
         .catch(() => {
           setCustomDomainChecked(true);
@@ -171,6 +169,18 @@ const AppContent = () => {
         </div>
       </div>
     );
+  }
+
+  // Se está em domínio customizado e encontrou a loja, renderiza direto
+  if (
+    typeof window !== "undefined" &&
+    !window.location.host.endsWith("vercel.app") &&
+    !window.location.host.includes("localhost") &&
+    !window.location.host.includes("onrender.com") &&
+    customDomainChecked &&
+    customDomainLoja
+  ) {
+    return <Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />;
   }
 
   return (

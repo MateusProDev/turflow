@@ -316,6 +316,7 @@ app.post('/api/loja/custom-domain', async (req, res) => {
 // Middleware: identifica loja pelo domínio customizado (aceita localhost para testes)
 app.use(async (req, res, next) => {
   let host = req.headers.host?.replace(/^www\./, '').toLowerCase();
+  console.log("DEBUG domínio customizado buscado:", host);
   // Para testes locais, permita simular domínio customizado via hosts ou query
   if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
     if (req.query.customDomain) {
