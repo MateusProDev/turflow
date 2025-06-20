@@ -56,6 +56,8 @@ const Lojinha = ({
   const [storeData, setStoreData] = useState(lojaData || null);
   const [loading, setLoading] = useState(!lojaData);
   const [error, setError] = useState(null);
+  const [loadingCheckout, setLoadingCheckout] = useState(false);
+  const [checkoutError, setCheckoutError] = useState(null);
 
   // Sincroniza todos os estados principais ao receber lojaData (domínio customizado)
   useEffect(() => {
