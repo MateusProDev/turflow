@@ -63,19 +63,13 @@ try {
 }
 
 // Configuração de CORS
-app.use(cors({
-  origin: [
-    'http://turflow.vercel.app',
-    'http://localhost:3000',
-  ],
-  methods: ['GET', 'POST'],
-  credentials: true,
-}));
-
-// --- CORS DINÂMICO ---
 const allowedOrigins = [
   'https://turflow.vercel.app',
+  'http://turflow.vercel.app',
+  'https://storesync.onrender.com',
+  'http://storesync.onrender.com',
   'http://localhost:3000',
+  'http://127.0.0.1:3000',
 ];
 
 app.use((req, res, next) => {
@@ -223,71 +217,6 @@ app.post('/api/mercadopago', async (req, res) => {
   }
 });
 
-// ROTA: Configurar domínio customizado para loja
-app.post('/api/loja/configure-domain', async (req, res) => {
-  const { lojaId, domain } = req.body;
-  if (!lojaId || !domain) {
-    return res.status(400).json({ message: 'lojaId e domain são obrigatórios.' });
-  }
-
-  // Gera instruções DNS (CNAME para Vercel)
-  // Para domínio raiz, pode ser necessário usar registros A (IPs da Vercel)
-  const isRootDomain = !domain.startsWith('www.') && domain.split('.').length === 2;
-  const vercelCname = 'cname.vercel-dns.com.';
-  const vercelARecords = [
-    '76.76.21.21', // IP padrão Vercel
-  ];
-  let dnsInstructions = [];
-  if (isRootDomain) {
-    dnsInstructions = [
-      { type: 'A', name: '@', value: vercelARecords[0], ttl: 3600 },
-    ];
-  } else {
-    dnsInstructions = [
-      { type: 'CNAME', name: domain.split('.')[0], value: vercelCname, ttl: 3600 },
-    ];
-  }
-
-  try {
-    // Atualiza Firestore
-    await db.collection('lojas').doc(lojaId).update({
-      customDomain: domain,
-      domainVerified: false,
-      domainDNSRecords: dnsInstructions,
-      domainLastUpdate: new Date(),
-    });
-    return res.json({
-      message: 'Domínio salvo com sucesso. Siga as instruções de DNS.',
-      dnsInstructions,
-    });
-  } catch (err) {
-    console.error('Erro ao salvar domínio customizado:', err);
-    return res.status(500).json({ message: 'Erro ao salvar domínio customizado.' });
-  }
-});
-
-// --- INTEGRAÇÃO COM VERCEL: Adicionar domínio customizado ao projeto Vercel ---
-const VERCEL_TOKEN = process.env.VERCEL_TOKEN;
-const VERCEL_PROJECT_ID = process.env.VERCEL_PROJECT_ID;
-const VERCEL_TEAM_ID = process.env.VERCEL_TEAM_ID; // Opcional
-
-// --- Middleware utilitário: buscar loja pelo domínio customizado ---
-async function getLojaByDomain(req, res, next) {
-  const host = req.headers.host;
-  if (!host) return next();
-  try {
-    const snapshot = await db.collection('lojas').where('customDomain', '==', host).limit(1).get();
-    if (!snapshot.empty) {
-      req.lojaData = snapshot.docs[0].data();
-      req.lojaId = snapshot.docs[0].id;
-    }
-  } catch (e) {
-    console.error('Erro ao buscar loja pelo domínio:', e.message);
-  }
-  next();
-}
-// Use este middleware em rotas que precisam identificar a loja pelo domínio
-
 // --- ROTA PRINCIPAL PARA DOMÍNIO CUSTOMIZADO (salva Firestore + adiciona na Vercel) ---
 app.post('/api/loja/custom-domain', async (req, res) => {
   const { lojaId, domain } = req.body;
@@ -347,6 +276,138 @@ app.post('/api/loja/custom-domain', async (req, res) => {
       domainLastUpdate: new Date(),
     });
     res.status(500).json({ message: 'Erro ao adicionar domínio na Vercel.', error: apiError, dnsInstructions });
+  }
+});
+
+// Middleware: identifica loja pelo domínio customizado (aceita localhost para testes)
+app.use(async (req, res, next) => {
+  let host = req.headers.host?.replace(/^www\./, '').toLowerCase();
+  // Para testes locais, permita simular domínio customizado via hosts ou query
+  if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
+    // Permite testar com ?customDomain=seudominio.com.br
+    if (req.query.customDomain) {
+      host = req.query.customDomain.toLowerCase();
+    } else {
+      return next();
+    }
+  }
+  try {
+    const snapshot = await db.collection('lojas')
+      .where('customDomain', '==', host)
+      .limit(1)
+      .get();
+
+    if (!snapshot.empty) {
+      req.lojaCustomizada = snapshot.docs[0].data();
+      req.lojaIdCustomizada = snapshot.docs[0].id;
+    }
+  } catch (e) {
+    console.error('Erro ao buscar loja pelo domínio customizado:', e.message);
+  }
+  next();
+});
+
+// Exemplo de rota pública que usa o domínio customizado
+app.get('/public/loja', async (req, res) => {
+  if (!req.lojaCustomizada) {
+    return res.status(404).json({ message: 'Loja não encontrada para este domínio.' });
+  }
+  res.json({
+    lojaId: req.lojaIdCustomizada,
+    loja: req.lojaCustomizada,
+  });
+});
+
+// Endpoint: verifica status do domínio na Vercel e atualiza Firestore
+app.post('/api/loja/verificar-dominio', async (req, res) => {
+  const { lojaId, domain } = req.body;
+  if (!lojaId || !domain) {
+    return res.status(400).json({ message: 'lojaId e domain são obrigatórios.' });
+  }
+  if (!VERCEL_TOKEN || !VERCEL_PROJECT_ID) {
+    return res.status(500).json({ message: 'Configuração da Vercel ausente.' });
+  }
+
+  try {
+    const url = `https://api.vercel.com/v6/domains/${domain}/config${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`;
+    const response = await axios.get(url, {
+      headers: { Authorization: `Bearer ${VERCEL_TOKEN}` }
+    });
+
+    const verified = response.data?.configured === true && response.data?.misconfigured === false;
+    await db.collection('lojas').doc(lojaId).update({
+      domainVerified: verified,
+      domainLastCheck: new Date(),
+      vercelDomainCheck: response.data,
+    });
+
+    res.json({ verified, vercelStatus: response.data });
+  } catch (err) {
+    console.error('Erro ao verificar domínio na Vercel:', err.response?.data || err.message);
+    res.status(500).json({ message: 'Erro ao verificar domínio na Vercel.', error: err.response?.data || err.message });
+  }
+});
+
+// ROTA: Forçar integração do domínio já salvo no Firestore com a Vercel
+app.post('/api/loja/forcar-vercel-domain', async (req, res) => {
+  const { lojaId } = req.body;
+  if (!lojaId) {
+    return res.status(400).json({ message: 'lojaId é obrigatório.' });
+  }
+  if (!VERCEL_TOKEN || !VERCEL_PROJECT_ID) {
+    return res.status(500).json({ message: 'Configuração da Vercel ausente. Contate o suporte.' });
+  }
+
+  try {
+    // Busca o domínio já salvo no Firestore
+    const lojaDoc = await db.collection('lojas').doc(lojaId).get();
+    if (!lojaDoc.exists) {
+      return res.status(404).json({ message: 'Loja não encontrada.' });
+    }
+    const lojaData = lojaDoc.data();
+    const domain = lojaData.customDomain;
+    if (!domain || typeof domain !== 'string' || !domain.trim()) {
+      return res.status(400).json({ message: 'Domínio não encontrado no documento da loja.' });
+    }
+
+    // Gera instruções DNS
+    const isRootDomain = !domain.startsWith('www.') && domain.split('.').length === 2;
+    const vercelCname = 'cname.vercel-dns.com.';
+    const vercelARecords = ['76.76.21.21'];
+    let dnsInstructions = [];
+    if (isRootDomain) {
+      dnsInstructions = [{ type: 'A', name: '@', value: vercelARecords[0], ttl: 3600 }];
+    } else {
+      dnsInstructions = [{ type: 'CNAME', name: domain.split('.')[0], value: vercelCname, ttl: 3600 }];
+    }
+
+    // Tenta adicionar na Vercel
+    const vercelApiUrl = `https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/domains${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`;
+    const response = await axios.post(
+      vercelApiUrl,
+      { name: domain },
+      {
+        headers: {
+          Authorization: `Bearer ${VERCEL_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+    // Atualiza Firestore com status da Vercel e instruções DNS
+    await db.collection('lojas').doc(lojaId).update({
+      vercelDomainStatus: response.data,
+      domainDNSRecords: dnsInstructions,
+      domainLastUpdate: new Date(),
+    });
+
+    res.json({
+      message: 'Domínio forçado e enviado para a Vercel. Siga as instruções de DNS e aguarde a verificação.',
+      dnsInstructions,
+      vercelResponse: response.data,
+    });
+  } catch (err) {
+    let apiError = err.response?.data?.error?.message || err.response?.data?.error || err.message;
+    res.status(500).json({ message: 'Erro ao adicionar domínio na Vercel.', error: apiError });
   }
 });
 

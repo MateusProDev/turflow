@@ -29,6 +29,7 @@ const CustomDomainConfig = ({
   const [domainLoading, setDomainLoading] = useState(false);
   const [domainError, setDomainError] = useState(null);
   const [domainSuccess, setDomainSuccess] = useState(null);
+  const [forceLoading, setForceLoading] = useState(false);
 
   useEffect(() => {
     if (storeData?.customDomain) {
@@ -93,6 +94,40 @@ const CustomDomainConfig = ({
     }
   };
 
+  const handleForceVercelDomain = async () => {
+    if (!currentUser?.uid) {
+      setDomainError("Usuário não autenticado.");
+      return;
+    }
+    if (!apiBaseUrl) {
+      setDomainError("A URL da API não está configurada. Contacte o suporte.");
+      return;
+    }
+    setForceLoading(true);
+    setDomainError(null);
+    setDomainSuccess(null);
+    setDomainConfigInstructions(null);
+
+    try {
+      const response = await axios.post(`${apiBaseUrl}/api/loja/forcar-vercel-domain`, {
+        lojaId: currentUser.uid,
+      });
+      if (response.data && response.data.dnsInstructions) {
+        setDomainConfigInstructions(response.data.dnsInstructions);
+        setDomainSuccess(
+          `Domínio forçado e enviado para a Vercel. Siga as instruções de DNS abaixo.`
+        );
+      } else {
+        throw new Error(response.data.message || "Não foi possível obter as instruções de DNS da API.");
+      }
+    } catch (err) {
+      const errorMessage = err.response?.data?.message || err.message || "Erro desconhecido ao forçar domínio.";
+      setDomainError(errorMessage);
+    } finally {
+      setForceLoading(false);
+    }
+  };
+
   return (
     <Box>
       <Typography variant="h5" gutterBottom>
@@ -105,7 +140,7 @@ const CustomDomainConfig = ({
 
       {userPlan === "free" && (
         <Alert severity="warning" sx={{ mb: 2 }}>
-          Este recurso non está dispoñible no seu plano actual. Considere facer un{' '}
+          Este recurso non está dispoñible no seu plano actual. Considere facer um{' '}
           <Link component="button" variant="body2" onClick={onUpgradePlanClick}>
             upgrade
           </Link>
@@ -136,6 +171,19 @@ const CustomDomainConfig = ({
         >
           {domainLoading ? "Configurando..." : (storeData?.customDomain === customDomainInput.trim() ? "Verificar/Actualizar DNS" : "Configurar Dominio")}
         </Button>
+        {/* --- Botão de Forçar integração com Vercel --- */}
+        {storeData?.customDomain && (
+          <Button
+            variant="outlined"
+            color="secondary"
+            sx={{ ml: 2, mt: 1 }}
+            onClick={handleForceVercelDomain}
+            disabled={forceLoading}
+          >
+            {forceLoading ? <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} /> : null}
+            Forçar integração com Vercel
+          </Button>
+        )}
         {domainError && <Alert severity="error" sx={{ mt: 2 }} onClose={() => setDomainError(null)}>{domainError}</Alert>}
         {domainSuccess && <Alert severity="success" sx={{ mt: 2 }} onClose={() => setDomainSuccess(null)}>{domainSuccess}</Alert>}
       </Paper>

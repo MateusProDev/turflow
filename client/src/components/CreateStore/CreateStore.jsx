@@ -197,13 +197,16 @@ const CreateStore = ({ onStoreCreated }) => {
           corSecundaria: '#2541b2',
           tema: 'claro'
         },
+        // --- CAMPOS PARA DOMÍNIO CUSTOMIZADO ---
         customDomain: "",
         domainVerified: false,
         domainDNSRecords: [],
         vercelDomainStatus: {},
+        // --- FIM CAMPOS DOMÍNIO ---
       };
 
-      let usuarioDataUpdate = {};
+      let usuarioDataUpdate;
+
       if (plano === 'free') {
         usuarioDataUpdate = {
           plano: 'free',
