@@ -1,5 +1,16 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/" }
+    {
+      "source": "/public/loja",
+      "destination": "https://storesync.onrender.com/public/loja"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://storesync.onrender.com/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
   ]
 }
