@@ -249,15 +249,24 @@ app.post('/api/loja/custom-domain', async (req, res) => {
     return res.status(400).json({ message: 'Slug da loja não encontrado.' });
   }
 
-  // Gera instruções DNS
-  const isRootDomain = !domain.startsWith('www.') && domain.split('.').length === 2;
-  const vercelCname = 'cname.vercel-dns.com.';
-  const vercelARecords = ['76.76.21.21'];
+  // --- AJUSTE: Gera instrução A para domínio sem www, CNAME para www ---
   let dnsInstructions = [];
-  if (isRootDomain) {
-    dnsInstructions = [{ type: 'A', name: '@', value: vercelARecords[0], ttl: 3600 }];
+  if (domain.trim().toLowerCase().startsWith('www.')) {
+    // Subdomínio www: CNAME
+    dnsInstructions = [{
+      type: 'CNAME',
+      name: 'www',
+      value: 'cname.vercel-dns.com.',
+      ttl: 3600
+    }];
   } else {
-    dnsInstructions = [{ type: 'CNAME', name: domain.split('.')[0], value: vercelCname, ttl: 3600 }];
+    // Domínio raiz: A
+    dnsInstructions = [{
+      type: 'A',
+      name: '@',
+      value: '76.76.21.21',
+      ttl: 3600
+    }];
   }
 
   // Salva tentativa inicial no Firestore
@@ -385,7 +394,6 @@ app.post('/api/loja/forcar-vercel-domain', async (req, res) => {
   }
 
   try {
-    // Busca o domínio já salvo no Firestore
     const lojaDoc = await db.collection('lojas').doc(lojaId).get();
     if (!lojaDoc.exists) {
       return res.status(404).json({ message: 'Loja não encontrada.' });
@@ -396,18 +404,24 @@ app.post('/api/loja/forcar-vercel-domain', async (req, res) => {
       return res.status(400).json({ message: 'Domínio não encontrado no documento da loja.' });
     }
 
-    // Gera instruções DNS
-    const isRootDomain = !domain.startsWith('www.') && domain.split('.').length === 2;
-    const vercelCname = 'cname.vercel-dns.com.';
-    const vercelARecords = ['76.76.21.21'];
+    // --- AJUSTE: Gera instrução A para domínio sem www, CNAME para www ---
     let dnsInstructions = [];
-    if (isRootDomain) {
-      dnsInstructions = [{ type: 'A', name: '@', value: vercelARecords[0], ttl: 3600 }];
+    if (domain.trim().toLowerCase().startsWith('www.')) {
+      dnsInstructions = [{
+        type: 'CNAME',
+        name: 'www',
+        value: 'cname.vercel-dns.com.',
+        ttl: 3600
+      }];
     } else {
-      dnsInstructions = [{ type: 'CNAME', name: domain.split('.')[0], value: vercelCname, ttl: 3600 }];
+      dnsInstructions = [{
+        type: 'A',
+        name: '@',
+        value: '76.76.21.21',
+        ttl: 3600
+      }];
     }
 
-    // Tenta adicionar na Vercel
     const vercelApiUrl = `https://api.vercel.com/v10/projects/${VERCEL_PROJECT_ID}/domains${VERCEL_TEAM_ID ? `?teamId=${VERCEL_TEAM_ID}` : ''}`;
     const response = await axios.post(
       vercelApiUrl,
@@ -419,7 +433,6 @@ app.post('/api/loja/forcar-vercel-domain', async (req, res) => {
         },
       }
     );
-    // Atualiza Firestore com status da Vercel e instruções DNS
     await db.collection('lojas').doc(lojaId).update({
       vercelDomainStatus: response.data,
       domainDNSRecords: dnsInstructions,
