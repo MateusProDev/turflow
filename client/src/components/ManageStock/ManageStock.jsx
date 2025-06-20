@@ -34,9 +34,10 @@ import CategoriasManager from "../CategoriasManager/CategoriasManager";
 import { useCategorias } from "../../context/CategoriasContext";
 import { useUserPlan } from "../../context/UserPlanContext"; // Mudança aqui - usando Context
 import { db } from "../../firebaseConfig";
-import { doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { doc, deleteDoc, updateDoc, setDoc } from "firebase/firestore";
 import { MAX_IMAGES, PRODUCT_LIMITS } from '../../utils/planLimits';
 import "./ManageStock.css";
+import CloudinaryUploadWidget from "../CloudinaryUploadWidget/CloudinaryUploadWidget";
 
 const PAGE_SIZE = 8;
 
@@ -49,6 +50,7 @@ const ManageStock = ({ products, setProducts, lojaId }) => {
   const [search, setSearch] = useState("");
   const [removingId, setRemovingId] = useState(null);
   const [error, setError] = useState(null);
+  const [produtoImg, setProdutoImg] = useState("");
   
   // Filtros avançados
   const [categoriaFiltro, setCategoriaFiltro] = useState("");
@@ -150,6 +152,7 @@ const ManageStock = ({ products, setProducts, lojaId }) => {
 
   const handleEdit = (product) => {
     setEditingProduct(product);
+    setProdutoImg(product.imagem || "");
     setModalOpen(true);
   };
 
@@ -435,13 +438,22 @@ const ManageStock = ({ products, setProducts, lojaId }) => {
       <ProductEditModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        onSave={(newProduct) => {
+        onSave={async (newProduct) => {
+          const produtoId = newProduct.id || doc(db, `lojas/${lojaId}/produtos`).id;
           if (editingProduct) {
+            await setDoc(doc(db, `lojas/${lojaId}/produtos`, produtoId), {
+              ...newProduct,
+              imagem: produtoImg
+            }, { merge: true });
             setProducts(products.map(p => 
-              p.id === editingProduct.id ? newProduct : p
+              p.id === editingProduct.id ? { ...newProduct, imagem: produtoImg } : p
             ));
           } else {
-            setProducts([...products, newProduct]);
+            await setDoc(doc(db, `lojas/${lojaId}/produtos`, produtoId), {
+              ...newProduct,
+              imagem: produtoImg
+            });
+            setProducts([...products, { ...newProduct, id: produtoId, imagem: produtoImg }]);
           }
           setModalOpen(false);
         }}

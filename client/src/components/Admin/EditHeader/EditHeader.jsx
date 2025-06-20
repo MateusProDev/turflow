@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { Button, TextField, Box, Avatar, Switch, FormControlLabel } from "@mui/material";
 import { updateDoc, doc } from "firebase/firestore";
 import { db } from "../../../firebaseConfig";
@@ -9,19 +9,19 @@ const EditHeader = ({
   setHeaderTitle,
   logoUrl,
   setLogoUrl,
-  exibirLogo: exibirLogoProp = true,
+  exibirLogo,
   setExibirLogo,
   onSave,
   currentUser,
-  onUpdate, // Nova prop para callback
+  onUpdate,
 }) => {
-  const [localExibirLogo, setLocalExibirLogo] = useState(exibirLogoProp);
+  const [localExibirLogo, setLocalExibirLogo] = useState(exibirLogo);
   const [uploading, setUploading] = useState(false);
 
   // Sincroniza com a prop sempre que mudar
   useEffect(() => {
-    setLocalExibirLogo(exibirLogoProp);
-  }, [exibirLogoProp]);
+    setLocalExibirLogo(exibirLogo);
+  }, [exibirLogo]);
 
   const handleLogoUpload = async (url) => {
     setUploading(true);

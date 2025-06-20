@@ -24,8 +24,16 @@ import { db } from "../../../firebaseConfig";
 import CloudinaryUploadWidget from "../../CloudinaryUploadWidget/CloudinaryUploadWidget";
 import styles from "./EditBanner.module.css"; // Use CSS modules
 
-const EditBanner = ({ currentUser, userPlan = "free" }) => {
-  const [banners, setBanners] = useState([]);
+const EditBanner = ({
+  bannerImages,
+  setBannerImages,
+  newBannerImage,
+  setNewBannerImage,
+  onAddBanner,
+  onRemoveBanner,
+  currentUser,
+  userPlan = "free",
+}) => {
   const [uploadError, setUploadError] = useState("");
   const [loading, setLoading] = useState(true);
   const [openDialog, setOpenDialog] = useState(false);
@@ -50,7 +58,7 @@ const EditBanner = ({ currentUser, userPlan = "free" }) => {
   }, [userPlan]);
 
   const bannerLimit = getPlanBannerLimit();
-  const remainingBanners = bannerLimit - banners.length;
+  const remainingBanners = bannerLimit - bannerImages.length;
 
   // Fetch banners from Firestore
   useEffect(() => {
@@ -78,7 +86,7 @@ const EditBanner = ({ currentUser, userPlan = "free" }) => {
               []
             );
             bannersArray.sort((a, b) => a.position - b.position);
-            setBanners(bannersArray);
+            setBannerImages(bannersArray);
           }
         }
       } catch (error) {
@@ -122,7 +130,7 @@ const EditBanner = ({ currentUser, userPlan = "free" }) => {
 
   // Handle adding a new banner
   const handleAddBanner = (url) => {
-    if (banners.length >= bannerLimit) {
+    if (bannerImages.length >= bannerLimit) {
       setUploadError(`Seu plano ${userPlan} permite apenas ${bannerLimit} banner(s)`);
       return;
     }
@@ -132,7 +140,7 @@ const EditBanner = ({ currentUser, userPlan = "free" }) => {
       key: generateId(),
       active: true,
       addedAt: new Date(),
-      position: banners.length + 1,
+      position: bannerImages.length + 1,
       alt: "",
       linkTo: "",
     };
@@ -148,10 +156,10 @@ const EditBanner = ({ currentUser, userPlan = "free" }) => {
 
   // Handle removing a banner
   const handleRemoveBanner = async (index) => {
-    const updatedBanners = banners
+    const updatedBanners = bannerImages
       .filter((_, i) => i !== index)
       .map((banner, idx) => ({ ...banner, position: idx + 1 }));
-    setBanners(updatedBanners);
+    setBannerImages(updatedBanners);
     await saveBannerChanges(updatedBanners);
     setUploadError("");
   };
@@ -182,8 +190,8 @@ const EditBanner = ({ currentUser, userPlan = "free" }) => {
       linkTo: bannerFormData.linkTo.trim(),
     };
 
-    const updatedBanners = [...banners, newBanner];
-    setBanners(updatedBanners);
+    const updatedBanners = [...bannerImages, newBanner];
+    setBannerImages(updatedBanners);
     await saveBannerChanges(updatedBanners);
     setOpenDialog(false);
     setCurrentBanner(null);
@@ -233,13 +241,48 @@ const EditBanner = ({ currentUser, userPlan = "free" }) => {
               <Typography variant="h6" gutterBottom>
                 Adicionar banner
               </Typography>
-              <CloudinaryUploadWidget onUpload={handleAddBanner} />
+              <CloudinaryUploadWidget
+                onUpload={(url) => setNewBannerImage(url)}
+              >
+                <Button
+                  variant="contained"
+                  color="primary"
+                  component="span"
+                  className={styles.uploadButton}
+                >
+                  {newBannerImage ? "Alterar Imagem" : "Enviar Imagem"}
+                </Button>
+              </CloudinaryUploadWidget>
+              {newBannerImage && (
+                <Box sx={{ mt: 2 }}>
+                  <img
+                    src={newBannerImage}
+                    alt="Preview do banner"
+                    style={{
+                      maxWidth: "100%",
+                      maxHeight: "200px",
+                      objectFit: "contain",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </Box>
+              )}
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={onAddBanner}
+                disabled={!newBannerImage}
+                sx={{ mt: 2 }}
+                className={styles.addButton}
+              >
+                Adicionar ao Banner
+              </Button>
             </Box>
           )}
 
-          {banners.length > 0 ? (
+          {bannerImages.length > 0 ? (
             <Grid container spacing={2} className={styles.bannerGrid}>
-              {banners.map((banner, idx) => (
+              {bannerImages.map((banner, idx) => (
                 <Grid item xs={12} sm={6} md={4} key={banner.key}>
                   <Card className={styles.card}>
                     <CardMedia
