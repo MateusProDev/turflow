@@ -95,18 +95,17 @@ const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
       }
       setLoja(lojaDataObj);
 
-      // Busca dados do produto/pacote
+      // Busca dados do produto/pacote SEMPRE na coleção produtos
       let produtoData = null;
-      const collectionName = tipoPacote ? 'pacotes' : 'produtos';
       const produtoQuery = query(
-        collection(db, `lojas/${finalLojaId}/${collectionName}`),
+        collection(db, `lojas/${finalLojaId}/produtos`),
         where("slug", "==", produtoSlug)
       );
       const produtosSnap = await getDocs(produtoQuery);
       if (!produtosSnap.empty) {
         produtoData = { id: produtosSnap.docs[0].id, ...produtosSnap.docs[0].data() };
       } else {
-        const produtoDocRef = doc(db, `lojas/${finalLojaId}/${collectionName}`, produtoSlug);
+        const produtoDocRef = doc(db, `lojas/${finalLojaId}/produtos`, produtoSlug);
         const produtoDocSnap = await getDoc(produtoDocRef);
         if (produtoDocSnap.exists()) {
           produtoData = { id: produtoDocSnap.id, ...produtoDocSnap.data() };
