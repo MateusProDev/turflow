@@ -370,7 +370,7 @@ const ProdutoPage = (props) => {
     );
   }
 
-  if (!lojaId || !lojaData) {
+  if (!propLojaId || !lojaData) {
     return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
   }
 
