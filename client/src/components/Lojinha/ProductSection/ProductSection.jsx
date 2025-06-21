@@ -111,10 +111,11 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
                     alt={prod.name}
                     className="product-image"
                     onClick={() => {
+                      // Sempre navega para a rota de pacote
                       if (isCustomDomain) {
-                        navigate(`/produto/${prod.slug}`);
+                        navigate(`/pacote/${prod.slug}`);
                       } else {
-                        navigate(`/${slug}/produto/${prod.slug}`);
+                        navigate(`/${slug}/pacote/${prod.slug}`);
                       }
                     }}
                     onError={e => { e.target.onerror = null; e.target.src = "/placeholder-produto.jpg"; }}
@@ -134,10 +135,11 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
                     <button
                       className="lojinha-view-details-btn"
                       onClick={() => {
+                        // Sempre navega para a rota de pacote
                         if (isCustomDomain) {
-                          navigate(`/produto/${prod.slug}`);
+                          navigate(`/pacote/${prod.slug}`);
                         } else {
-                          navigate(`/${slug}/produto/${prod.slug}`);
+                          navigate(`/${slug}/pacote/${prod.slug}`);
                         }
                       }}
                     >
