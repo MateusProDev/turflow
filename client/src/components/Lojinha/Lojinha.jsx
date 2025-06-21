@@ -429,7 +429,13 @@ const Lojinha = ({
       {/* Banner */}
       {bannerImages?.length > 0 && (
         <div className="lojinha-banner-wrapper">
-          <Banner banners={bannerImages} />
+          <Banner banners={
+            bannerImages.map(b =>
+              typeof b === "string"
+                ? b
+                : b?.url || "" // Suporte para ambos formatos
+            ).filter(Boolean)
+          } />
         </div>
       )}
 

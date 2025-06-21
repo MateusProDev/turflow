@@ -133,7 +133,11 @@ const Cart = ({
                 <li key={`${item.id}-${index}`} className="cart-item-min">
                   <div className="cart-item-image-container">
                     <img 
-                      src={item.imageUrl || 'https://placehold.co/100x100/eef1f5/777?text=Sem+Imagem'}
+                      src={
+                        (item.images && item.images[0]) ||
+                        item.imageUrl ||
+                        'https://placehold.co/100x100/eef1f5/777?text=Sem+Imagem'
+                      }
                       alt={item.name}
                       className="cart-item-image"
                       onError={(e) => {
