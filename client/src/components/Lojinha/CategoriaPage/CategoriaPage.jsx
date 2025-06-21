@@ -144,6 +144,10 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
     carouselRef.current.scrollLeft = scrollLeft.current - walk;
   };
 
+  if (!lojaId || !lojaData) {
+    return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
+  }
+
   return (
     <div className="categoria-page-container">
       <h1 className="categoria-titulo">Categoria: {categoria}</h1>

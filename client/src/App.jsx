@@ -220,31 +220,34 @@ const AppContent = () => {
     !window.location.host.includes("onrender.com")
   ) {
     if (!customDomainChecked) {
-      return (
-        <div className="d-flex justify-content-center align-items-center vh-100">
-          <Spinner animation="border" variant="primary" role="status">
-            <span className="visually-hidden">Carregando loja...</span>
-          </Spinner>
-        </div>
-      );
+      return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando loja...</h2></div>;
     }
-    if (!customDomainLoja) {
-      return (
-        <div className="d-flex justify-content-center align-items-center vh-100">
-          <div>
-            <h2>Loja não encontrada para este domínio.</h2>
-            <p>Verifique se o domínio está corretamente configurado ou tente novamente mais tarde.</p>
-          </div>
-        </div>
-      );
+    if (!customDomainLoja || !customDomainLoja.lojaId || !customDomainLoja.loja) {
+      return <div style={{textAlign:'center',marginTop:80,color:'red'}}><h2>Loja não encontrada ou fora do ar.</h2></div>;
     }
-    // Só renderiza as rotas se customDomainLoja estiver pronto
+    // Só renderiza as rotas se customDomainLoja está OK!
     return (
-      <Routes location={location}>
-        <Route path="/" element={<Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
-        <Route path="/categoria/:categoria" element={<CategoriaPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
-        <Route path="/pacote/:produtoSlug" element={<ProdutoPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+      <Routes>
+        <Route path="/" element={
+          <Lojinha
+            lojaId={customDomainLoja.lojaId}
+            lojaData={customDomainLoja.loja}
+            logoUrl={customDomainLoja.loja.logoUrl}
+          />
+        } />
+        <Route path="/categoria/:categoria" element={
+          <CategoriaPage
+            lojaId={customDomainLoja.lojaId}
+            lojaData={customDomainLoja.loja}
+          />
+        } />
+        <Route path="/pacote/:produtoSlug" element={
+          <ProdutoPage
+            lojaId={customDomainLoja.lojaId}
+            lojaData={customDomainLoja.loja}
+          />
+        } />
+        {/* ...outras rotas */}
       </Routes>
     );
   }

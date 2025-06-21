@@ -370,6 +370,10 @@ const ProdutoPage = (props) => {
     );
   }
 
+  if (!lojaId || !lojaData) {
+    return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
+  }
+
   // Mostra os dados crus do Firestore acima do layout detalhado
   // (mantém toda a lógica e estrutura atual)
   return (
