@@ -32,7 +32,7 @@ import NavBar from "../NavBar/NavBar";
 import Footer from "../Footer/Footer";
 import "./ProdutoPage.css";
 
-const ProdutoPage = ({ lojaId: propLojaId, lojaData }) => {
+const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
   const { slug, produtoSlug } = useParams();
   const navigate = useNavigate();
   const [produto, setProduto] = useState(null);
@@ -95,22 +95,23 @@ const ProdutoPage = ({ lojaId: propLojaId, lojaData }) => {
       }
       setLoja(lojaDataObj);
 
-      // Busca dados do produto
+      // Busca dados do produto/pacote
       let produtoData = null;
+      const collectionName = tipoPacote ? 'pacotes' : 'produtos';
       const produtoQuery = query(
-        collection(db, `lojas/${lojaDataObj.id}/produtos`),
+        collection(db, `lojas/${finalLojaId}/${collectionName}`),
         where("slug", "==", produtoSlug)
       );
       const produtosSnap = await getDocs(produtoQuery);
       if (!produtosSnap.empty) {
         produtoData = { id: produtosSnap.docs[0].id, ...produtosSnap.docs[0].data() };
       } else {
-        const produtoDocRef = doc(db, `lojas/${lojaDataObj.id}/produtos`, produtoSlug);
+        const produtoDocRef = doc(db, `lojas/${finalLojaId}/${collectionName}`, produtoSlug);
         const produtoDocSnap = await getDoc(produtoDocRef);
         if (produtoDocSnap.exists()) {
           produtoData = { id: produtoDocSnap.id, ...produtoDocSnap.data() };
         } else {
-          throw new Error(`Produto não encontrado na loja "${lojaDataObj.nome}".`);
+          throw new Error(`Pacote/Produto não encontrado na loja "${lojaDataObj?.nome || ''}".`);
         }
       }
 
