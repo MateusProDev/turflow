@@ -35,6 +35,7 @@ import "./ProdutoPage.css";
 const ProdutoPage = (props) => {
   const params = useParams();
   const produtoSlug = params.produtoSlug || params.pacoteSlug;
+  const slug = params.slug; // Corrige: pega o slug da loja se existir
   const { lojaId: propLojaId, lojaData } = props;
   const navigate = useNavigate();
   // Detecta se está na rota /pacote/:produtoSlug
