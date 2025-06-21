@@ -32,11 +32,11 @@ import NavBar from "../NavBar/NavBar";
 import Footer from "../Footer/Footer";
 import "./ProdutoPage.css";
 
-const ProdutoPage = () => {
+const ProdutoPage = ({ lojaId: propLojaId, lojaData }) => {
   const { slug, produtoSlug } = useParams();
   const navigate = useNavigate();
   const [produto, setProduto] = useState(null);
-  const [loja, setLoja] = useState(null);
+  const [loja, setLoja] = useState(lojaData || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -67,31 +67,50 @@ const ProdutoPage = () => {
     setLoading(true);
     setError(null);
     try {
-      // Busca dados da loja
-      const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
-      const lojaSnap = await getDocs(lojaQuery);
-      if (lojaSnap.empty) {
-        throw new Error(`Loja com slug "${slug}" não encontrada.`);
+      let finalLojaId = propLojaId;
+      let lojaDataObj = lojaData;
+      if (!finalLojaId) {
+        // Detecta domínio customizado
+        const isCustomDomain =
+          typeof window !== 'undefined' &&
+          !window.location.host.endsWith('vercel.app') &&
+          !window.location.host.includes('localhost') &&
+          !window.location.host.includes('onrender.com');
+        if (isCustomDomain && lojaData && lojaData.id) {
+          finalLojaId = lojaData.id;
+          lojaDataObj = lojaData;
+        } else if (!isCustomDomain) {
+          // Busca a loja pelo slug
+          const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
+          const lojaSnap = await getDocs(lojaQuery);
+          if (!lojaSnap.empty) {
+            finalLojaId = lojaSnap.docs[0].id;
+            lojaDataObj = { id: lojaSnap.docs[0].id, ...lojaSnap.docs[0].data() };
+          }
+        }
       }
-      const lojaData = { id: lojaSnap.docs[0].id, ...lojaSnap.docs[0].data() };
-      setLoja(lojaData);
+      if (!finalLojaId) {
+        setLoading(false);
+        return;
+      }
+      setLoja(lojaDataObj);
 
       // Busca dados do produto
       let produtoData = null;
       const produtoQuery = query(
-        collection(db, `lojas/${lojaData.id}/produtos`),
+        collection(db, `lojas/${lojaDataObj.id}/produtos`),
         where("slug", "==", produtoSlug)
       );
       const produtosSnap = await getDocs(produtoQuery);
       if (!produtosSnap.empty) {
         produtoData = { id: produtosSnap.docs[0].id, ...produtosSnap.docs[0].data() };
       } else {
-        const produtoDocRef = doc(db, `lojas/${lojaData.id}/produtos`, produtoSlug);
+        const produtoDocRef = doc(db, `lojas/${lojaDataObj.id}/produtos`, produtoSlug);
         const produtoDocSnap = await getDoc(produtoDocRef);
         if (produtoDocSnap.exists()) {
           produtoData = { id: produtoDocSnap.id, ...produtoDocSnap.data() };
         } else {
-          throw new Error(`Produto não encontrado na loja "${lojaData.nome}".`);
+          throw new Error(`Produto não encontrado na loja "${lojaDataObj.nome}".`);
         }
       }
 

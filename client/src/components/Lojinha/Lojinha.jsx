@@ -491,7 +491,17 @@ const Lojinha = ({
                   key={key}
                   className="lojinha-categoria-btn"
                   onClick={() => {
-                    navigate(`/${slug}/categoria/${encodeURIComponent(nome.toLowerCase())}`);
+                    // Detecta domínio customizado
+                    const isCustomDomain =
+                      typeof window !== 'undefined' &&
+                      !window.location.host.endsWith('vercel.app') &&
+                      !window.location.host.includes('localhost') &&
+                      !window.location.host.includes('onrender.com');
+                    if (isCustomDomain) {
+                      navigate(`/categoria/${encodeURIComponent(nome.toLowerCase())}`);
+                    } else {
+                      navigate(`/${slug}/categoria/${encodeURIComponent(nome.toLowerCase())}`);
+                    }
                   }}
                   title={`Ver categoria ${nome}`}
                 >

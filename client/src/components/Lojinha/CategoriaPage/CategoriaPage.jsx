@@ -13,9 +13,9 @@ const SkeletonCard = () => (
   </div>
 );
 
-const CategoriaPage = () => {
+const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
   const { slug, categoria } = useParams();
-  const [lojaId, setLojaId] = useState(null);
+  const [lojaId, setLojaId] = useState(propLojaId || null);
   const [produtos, setProdutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -35,51 +35,65 @@ const CategoriaPage = () => {
     async function fetchLojaIdAndProdutos() {
       setLoading(true);
       try {
-        // Busca a loja pelo slug
-        const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
-        const lojaSnap = await getDocs(lojaQuery);
-        
-        if (!lojaSnap.empty) {
-          const lojaId = lojaSnap.docs[0].id;
-          setLojaId(lojaId);
-
-          // Busca produtos da categoria (case insensitive)
-          const produtosRef = collection(db, `lojas/${lojaId}/produtos`);
-          const produtosQuery = query(
-            produtosRef,
-            where("category", "==", "Camisas"), // Teste com valor fixo primeiro
-            where("ativo", "==", true)
-          );
-
-          console.log("Executando query:", produtosQuery); // Debug
-
-          const produtosSnap = await getDocs(produtosQuery);
-          console.log("Produtos encontrados:", produtosSnap.docs.length); // Debug
-
-          const produtosData = produtosSnap.docs.map(doc => {
-            const data = doc.data();
-            return {
-              id: doc.id,
-              ...data,
-              // Converte strings numéricas para números
-              price: parseFloat(data.price) || 0,
-              anchorPrice: data.anchorPrice ? parseFloat(data.anchorPrice) : null
-            };
-          });
-
-          console.log("Produtos processados:", produtosData); // Debug
-
-          // Ordenação
-          const produtosOrdenados = produtosData.sort((a, b) => {
-            if (a.prioridade && !b.prioridade) return -1;
-            if (!a.prioridade && b.prioridade) return 1;
-            return 0;
-          });
-
-          setProdutos(produtosOrdenados);
-        } else {
-          console.error("Loja não encontrada");
+        let finalLojaId = propLojaId;
+        if (!finalLojaId) {
+          // Detecta domínio customizado
+          const isCustomDomain =
+            typeof window !== 'undefined' &&
+            !window.location.host.endsWith('vercel.app') &&
+            !window.location.host.includes('localhost') &&
+            !window.location.host.includes('onrender.com');
+          if (isCustomDomain && lojaData && lojaData.id) {
+            finalLojaId = lojaData.id;
+          } else if (!isCustomDomain) {
+            // Busca a loja pelo slug
+            const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
+            const lojaSnap = await getDocs(lojaQuery);
+            if (!lojaSnap.empty) {
+              finalLojaId = lojaSnap.docs[0].id;
+            }
+          }
         }
+        if (!finalLojaId) {
+          setLoading(false);
+          return;
+        }
+        setLojaId(finalLojaId);
+
+        // Busca produtos da categoria (case insensitive)
+        const produtosRef = collection(db, `lojas/${finalLojaId}/produtos`);
+        const produtosQuery = query(
+          produtosRef,
+          where("category", "==", "Camisas"), // Teste com valor fixo primeiro
+          where("ativo", "==", true)
+        );
+
+        console.log("Executando query:", produtosQuery); // Debug
+
+        const produtosSnap = await getDocs(produtosQuery);
+        console.log("Produtos encontrados:", produtosSnap.docs.length); // Debug
+
+        const produtosData = produtosSnap.docs.map(doc => {
+          const data = doc.data();
+          return {
+            id: doc.id,
+            ...data,
+            // Converte strings numéricas para números
+            price: parseFloat(data.price) || 0,
+            anchorPrice: data.anchorPrice ? parseFloat(data.anchorPrice) : null
+          };
+        });
+
+        console.log("Produtos processados:", produtosData); // Debug
+
+        // Ordenação
+        const produtosOrdenados = produtosData.sort((a, b) => {
+          if (a.prioridade && !b.prioridade) return -1;
+          if (!a.prioridade && b.prioridade) return 1;
+          return 0;
+        });
+
+        setProdutos(produtosOrdenados);
       } catch (error) {
         console.error("Erro completo:", error);
       } finally {
