@@ -32,9 +32,11 @@ import NavBar from "../NavBar/NavBar";
 import Footer from "../Footer/Footer";
 import "./ProdutoPage.css";
 
-const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
+const ProdutoPage = ({ lojaId: propLojaId, lojaData }) => {
   const { slug, produtoSlug } = useParams();
   const navigate = useNavigate();
+  // Detecta se está na rota /pacote/:produtoSlug
+  const isPacoteRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/pacote/');
   const [produto, setProduto] = useState(null);
   const [loja, setLoja] = useState(lojaData || null);
   const [loading, setLoading] = useState(true);
@@ -318,7 +320,7 @@ const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
         <Button
           variant="text"
           startIcon={<ArrowBackIcon />}
-          onClick={() => navigate(`/${slug}`)}
+          onClick={() => navigate('/')} // Volta para home
           sx={{ mb: 3, textTransform: 'none' }}
         >
           Voltar para {loja.nome}
@@ -362,11 +364,11 @@ const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
                 )}
               </Box>
             </Box>
-            {/* Detalhes do Produto */}
+            {/* Detalhes do Pacote/Produto */}
             <Box sx={{ width: { xs: '100%', md: '50%' } }}>
               <Box className="product-details">
                 <Typography variant="h3" component="h1" sx={{ fontWeight: 700, mb: 1 }}>
-                  {produto.name}
+                  {isPacoteRoute ? 'Pacote: ' : ''}{produto.name}
                 </Typography>
                 {/* Preço e Desconto */}
                 <Box mb={2.5}>
@@ -406,7 +408,7 @@ const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
                     </List>
                   </Box>
                 )}
-                {/* Variantes do Produto */}
+                {/* Variantes do Pacote/Produto */}
                 {(Array.isArray(produto.variants) || (produto.variants && typeof produto.variants === 'object')) && (
                   <Box mb={3}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
@@ -520,7 +522,7 @@ const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
               }}
             >
               <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="h6" sx={{ fontWeight: 600 }}>Descrição do Produto</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>{isPacoteRoute ? 'Descrição do Pacote' : 'Descrição do Produto'}</Typography>
               </AccordionSummary>
               <AccordionDetails>
                 {produto.description ? (
@@ -529,7 +531,7 @@ const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
                   </Typography>
                 ) : (
                   <Typography variant="body1" color="text.secondary">
-                    Nenhuma descrição disponível para este produto.
+                    Nenhuma descrição disponível para este {isPacoteRoute ? 'pacote' : 'produto'}.
                   </Typography>
                 )}
               </AccordionDetails>
@@ -548,7 +550,7 @@ const ProdutoPage = ({ lojaId: propLojaId, lojaData, tipoPacote }) => {
                 }}
               >
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="h6" sx={{ fontWeight: 600 }}>Especificações</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>{isPacoteRoute ? 'Especificações do Pacote' : 'Especificações'}</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
                   <List dense>
