@@ -100,7 +100,10 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
           : showProducts.map((prod) => {
               const desconto = getDiscount(prod.price, prod.anchorPrice);
               console.log('[DEBUG] Produto recebido:', prod);
-              const imageUrl = prod.imagem || prod.image || prod.img || prod.foto || prod.urlImagem || "/placeholder-produto.jpg";
+              // Exibe a primeira imagem do array images, se existir
+              const imageUrl =
+                (Array.isArray(prod.images) && prod.images.length > 0 && prod.images[0]) ||
+                prod.imagem || prod.image || prod.img || prod.foto || prod.urlImagem || "/placeholder-produto.jpg";
               return (
                 <div key={prod.id} className="lojinha-product-card">
                   {desconto > 0 && (
