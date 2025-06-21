@@ -19,6 +19,13 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
   const startX = useRef(0);
   const scrollLeft = useRef(0);
 
+  // Detecta se está em domínio customizado (sem slug na URL)
+  const isCustomDomain =
+    typeof window !== 'undefined' &&
+    !window.location.host.endsWith('vercel.app') &&
+    !window.location.host.includes('localhost') &&
+    !window.location.host.includes('onrender.com');
+
   // Drag mouse
   const handleMouseDown = (e) => {
     isDragging.current = true;
@@ -65,7 +72,13 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
         {products && products.length > 5 && (
           <button
             className="lojinha-ver-mais-btn"
-            onClick={() => navigate(`/${slug}/categoria/${encodeURIComponent(categoriaId || title)}`)}
+            onClick={() => {
+              if (isCustomDomain) {
+                navigate(`/categoria/${encodeURIComponent(categoriaId || title)}`);
+              } else {
+                navigate(`/${slug}/categoria/${encodeURIComponent(categoriaId || title)}`);
+              }
+            }}
           >
             Ver mais &rarr;
           </button>
@@ -97,7 +110,13 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
                     src={imageUrl}
                     alt={prod.name}
                     className="product-image"
-                    onClick={() => navigate(`/${slug}/produto/${prod.slug}`)}
+                    onClick={() => {
+                      if (isCustomDomain) {
+                        navigate(`/produto/${prod.slug}`);
+                      } else {
+                        navigate(`/${slug}/produto/${prod.slug}`);
+                      }
+                    }}
                     onError={e => { e.target.onerror = null; e.target.src = "/placeholder-produto.jpg"; }}
                     loading="lazy"
                   />
@@ -114,7 +133,13 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
                   <div className="lojinha-product-actions">
                     <button
                       className="lojinha-view-details-btn"
-                      onClick={() => navigate(`/${slug}/produto/${prod.slug}`)}
+                      onClick={() => {
+                        if (isCustomDomain) {
+                          navigate(`/produto/${prod.slug}`);
+                        } else {
+                          navigate(`/${slug}/produto/${prod.slug}`);
+                        }
+                      }}
                     >
                       Mais Detalhes
                     </button>
