@@ -217,31 +217,28 @@ const AppContent = () => {
     typeof window !== "undefined" &&
     !window.location.host.endsWith("vercel.app") &&
     !window.location.host.includes("localhost") &&
-    !window.location.host.includes("onrender.com") &&
-    customDomainChecked &&
-    !customDomainRedirected.current &&
-    !customDomainLoja
+    !window.location.host.includes("onrender.com")
   ) {
-    console.log("[DEBUG] AppContent: Domínio customizado, mas loja não encontrada!");
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <div>
-          <h2>Loja não encontrada para este domínio.</h2>
-          <p>Verifique se o domínio está corretamente configurado ou tente novamente mais tarde.</p>
+    if (!customDomainChecked) {
+      return (
+        <div className="d-flex justify-content-center align-items-center vh-100">
+          <Spinner animation="border" variant="primary" role="status">
+            <span className="visually-hidden">Carregando loja...</span>
+          </Spinner>
         </div>
-      </div>
-    );
-  }
-
-  if (
-    typeof window !== "undefined" &&
-    !window.location.host.endsWith("vercel.app") &&
-    !window.location.host.includes("localhost") &&
-    !window.location.host.includes("onrender.com") &&
-    customDomainChecked &&
-    customDomainLoja
-  ) {
-    console.log("[DEBUG] AppContent: Renderizando rotas para domínio customizado:", customDomainLoja);
+      );
+    }
+    if (!customDomainLoja) {
+      return (
+        <div className="d-flex justify-content-center align-items-center vh-100">
+          <div>
+            <h2>Loja não encontrada para este domínio.</h2>
+            <p>Verifique se o domínio está corretamente configurado ou tente novamente mais tarde.</p>
+          </div>
+        </div>
+      );
+    }
+    // Só renderiza as rotas se customDomainLoja estiver pronto
     return (
       <Routes location={location}>
         <Route path="/" element={<Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
