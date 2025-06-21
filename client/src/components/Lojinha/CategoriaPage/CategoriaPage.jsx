@@ -210,30 +210,12 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
                     )}
                     R$ {Number(produto.price).toFixed(2)}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: 12 }}>
-                    <a
-                      href={`/pacote/${produto.slug}`}
-                      style={{ textDecoration: 'none', width: '100%' }}
-                    >
-                      <button
-                        className="categoria-produto-btn categoria-produto-btn-saiba-mais"
-                        style={{
-                          width: '100%',
-                          background: '#e0e0e0',
-                          color: '#333',
-                          border: 'none',
-                          borderRadius: 6,
-                          padding: '10px 0',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textAlign: 'center',
-                          fontSize: 16
-                        }}
-                      >
-                        Saiba mais
-                      </button>
-                    </a>
-                  </div>
+                  <a
+                    href={`/pacote/${produto.slug}`}
+                    className="categoria-produto-btn categoria-produto-btn-detalhes"
+                  >
+                    Ver detalhes
+                  </a>
                 </div>
               );
             })}
