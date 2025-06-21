@@ -19,6 +19,7 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
   const [produtos, setProdutos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [categorias, setCategorias] = useState([]);
 
   const carouselRef = useRef(null);
   const isDragging = useRef(false);
@@ -60,39 +61,30 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
         }
         setLojaId(finalLojaId);
 
-        // Busca produtos da categoria (case insensitive)
+        // Busca todos os produtos ativos
         const produtosRef = collection(db, `lojas/${finalLojaId}/produtos`);
-        const produtosQuery = query(
-          produtosRef,
-          where("category", "==", "Camisas"), // Teste com valor fixo primeiro
-          where("ativo", "==", true)
-        );
-
-        console.log("Executando query:", produtosQuery); // Debug
-
+        const produtosQuery = query(produtosRef, where("ativo", "==", true));
         const produtosSnap = await getDocs(produtosQuery);
-        console.log("Produtos encontrados:", produtosSnap.docs.length); // Debug
-
         const produtosData = produtosSnap.docs.map(doc => {
           const data = doc.data();
           return {
             id: doc.id,
             ...data,
-            // Converte strings numéricas para números
             price: parseFloat(data.price) || 0,
             anchorPrice: data.anchorPrice ? parseFloat(data.anchorPrice) : null
           };
         });
-
-        console.log("Produtos processados:", produtosData); // Debug
-
+        // Extrai categorias únicas dos produtos ativos
+        const categoriasUnicas = Array.from(new Set(produtosData.map(p => (p.category || "").trim()).filter(Boolean)));
+        setCategorias(categoriasUnicas);
+        // Filtra pela categoria da URL (case insensitive)
+        const produtosFiltrados = produtosData.filter(p => (p.category || "").toLowerCase() === (categoria || "").toLowerCase());
         // Ordenação
-        const produtosOrdenados = produtosData.sort((a, b) => {
+        const produtosOrdenados = produtosFiltrados.sort((a, b) => {
           if (a.prioridade && !b.prioridade) return -1;
           if (!a.prioridade && b.prioridade) return 1;
           return 0;
         });
-
         setProdutos(produtosOrdenados);
       } catch (error) {
         console.error("Erro completo:", error);
@@ -148,6 +140,23 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
   return (
     <div className="categoria-page-container">
       <h1 className="categoria-titulo">Categoria: {categoria}</h1>
+      {/* Lista de categorias disponíveis */}
+      {categorias.length > 0 && (
+        <div className="categoria-lista-categorias">
+          <span>Categorias: </span>
+          {categorias.map(cat => (
+            <a
+              key={cat}
+              href={
+                `/loja/${slug}/categoria/${encodeURIComponent(cat)}`
+              }
+              className={`categoria-link${cat.toLowerCase() === (categoria || '').toLowerCase() ? ' ativa' : ''}`}
+            >
+              {cat}
+            </a>
+          ))}
+        </div>
+      )}
       <input
         type="text"
         className="categoria-pesquisa-input"

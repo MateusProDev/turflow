@@ -122,7 +122,7 @@ const Lojinha = ({
     fetchStoreData();
   }, [lojaId, lojaData]);
 
-  // Efeito para ouvir produtos em tempo real
+  // Efeito para ouvir produtos em tempo real E extrair categorias dinamicamente
   useEffect(() => {
     if (!lojaId) {
       console.warn("[DEBUG] Lojinha: lojaId não definido, não irá buscar produtos.");
@@ -152,8 +152,11 @@ const Lojinha = ({
         if (!agrupados[cat]) agrupados[cat] = [];
         agrupados[cat].push(prod);
       });
-
       setProdutosPorCategoria(agrupados);
+
+      // Extrai categorias dinamicamente dos produtos
+      const categoriasDinamicas = Array.from(new Set(produtosAtivos.map(p => p.category || "Outros")));
+      setCategorias(categoriasDinamicas);
     }, (error) => {
       console.error("Erro ao buscar produtos em tempo real:", error);
     });
