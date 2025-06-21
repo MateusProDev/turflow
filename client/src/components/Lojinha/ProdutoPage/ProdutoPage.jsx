@@ -138,13 +138,14 @@ const ProdutoPage = (props) => {
   };
 
   useEffect(() => {
-    if (!slug || !produtoSlug) {
-      setError("Slugs da loja ou produto não fornecidos.");
+    // Em domínio customizado, não exija slug, só produtoSlug e lojaId
+    if ((!produtoSlug) || (!loja && !lojaId && !propLojaId)) {
+      setError("Dados insuficientes para buscar o pacote/produto.");
       setLoading(false);
       return;
     }
     fetchProdutoData();
-  }, [slug, produtoSlug]);
+  }, [slug, produtoSlug, loja, lojaId, propLojaId]);
 
   useEffect(() => {
     if (produto) {
