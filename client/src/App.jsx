@@ -87,6 +87,30 @@ function CategoriaPageWrapper() {
   return <CategoriaPage lojaId={lojaId} />;
 }
 
+// Wrapper para garantir lojaId em ProdutoPage
+function ProdutoPageWrapper() {
+  const { slug, produtoSlug } = useParams();
+  const [lojaId, setLojaId] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    if (!slug) return;
+    async function fetchLojaId() {
+      const q = query(collection(db, "lojas"), where("slug", "==", slug));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        setLojaId(snap.docs[0].id);
+      }
+      setLoading(false);
+    }
+    fetchLojaId();
+  }, [slug]);
+
+  if (loading) return <div>Carregando pacote...</div>;
+  if (!lojaId) return <div>Loja não encontrada.</div>;
+  return <ProdutoPage lojaId={lojaId} />;
+}
+
 const AppContent = () => {
   const [user, setUser] = useState(null);
   const [hasStore, setHasStore] = useState(false);
@@ -289,7 +313,7 @@ const AppContent = () => {
           }
         />
         <Route path="/:slug/categoria/:categoria" element={<CategoriaPageWrapper />} />
-        <Route path="/:slug/produto/:produtoSlug" element={<ProdutoPage />} />
+        <Route path="/:slug/produto/:produtoSlug" element={<ProdutoPageWrapper />} />
 
         {/* Rotas protegidas que requerem apenas autenticação */}
         <Route

@@ -74,18 +74,21 @@ const ProdutoPage = (props) => {
     try {
       let finalLojaId = propLojaId;
       let lojaDataObj = lojaData;
-      if (!finalLojaId) {
-        // Detecta domínio customizado
-        const isCustomDomain =
-          typeof window !== 'undefined' &&
-          !window.location.host.endsWith('vercel.app') &&
-          !window.location.host.includes('localhost') &&
-          !window.location.host.includes('onrender.com');
-        if (isCustomDomain && lojaData && lojaData.id) {
+      // Detecta domínio customizado
+      const isCustomDomain =
+        typeof window !== 'undefined' &&
+        !window.location.host.endsWith('vercel.app') &&
+        !window.location.host.includes('localhost') &&
+        !window.location.host.includes('onrender.com');
+      if (isCustomDomain) {
+        // No domínio personalizado, use apenas o lojaId das props
+        if (!finalLojaId && lojaData && lojaData.id) {
           finalLojaId = lojaData.id;
           lojaDataObj = lojaData;
-        } else if (!isCustomDomain) {
-          // Busca a loja pelo slug
+        }
+      } else {
+        // No domínio padrão, busca pelo slug se necessário
+        if (!finalLojaId && slug) {
           const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
           const lojaSnap = await getDocs(lojaQuery);
           if (!lojaSnap.empty) {
@@ -99,7 +102,6 @@ const ProdutoPage = (props) => {
         return;
       }
       setLoja(lojaDataObj);
-
       // Busca dados do produto/pacote SEMPRE na coleção produtos
       let produtoData = null;
       const produtoQuery = query(
@@ -118,19 +120,11 @@ const ProdutoPage = (props) => {
           throw new Error(`Pacote/Produto não encontrado na loja "${lojaDataObj?.nome || ''}".`);
         }
       }
-
-      // Garante que images seja um array
       if (produtoData && !Array.isArray(produtoData.images)) {
         produtoData.images = [];
       }
-
-      // Validação de dados básicos
-      if (!produtoData.name || !produtoData.price) {
-        console.warn("Produto com dados incompletos:", produtoData);
-      }
       setProduto(produtoData);
     } catch (err) {
-      console.error("Erro ao buscar dados:", err);
       setError(err.message || "Erro ao carregar dados do produto.");
     } finally {
       setLoading(false);

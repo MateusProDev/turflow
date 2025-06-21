@@ -36,18 +36,21 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
     async function ensureLojaIdAndFetchProdutos() {
       setLoading(true);
       let finalLojaId = propLojaId;
+      // Detecta domínio customizado
+      const isCustomDomain =
+        typeof window !== 'undefined' &&
+        !window.location.host.endsWith('vercel.app') &&
+        !window.location.host.includes('localhost') &&
+        !window.location.host.includes('onrender.com');
       try {
-        if (!finalLojaId) {
-          // Detecta domínio customizado
-          const isCustomDomain =
-            typeof window !== 'undefined' &&
-            !window.location.host.endsWith('vercel.app') &&
-            !window.location.host.includes('localhost') &&
-            !window.location.host.includes('onrender.com');
-          if (isCustomDomain && lojaData && lojaData.id) {
+        if (isCustomDomain) {
+          // No domínio personalizado, use apenas o lojaId das props
+          if (!finalLojaId && lojaData && lojaData.id) {
             finalLojaId = lojaData.id;
-          } else if (!isCustomDomain && slug) {
-            // Busca a loja pelo slug
+          }
+        } else {
+          // No domínio padrão, busca pelo slug se necessário
+          if (!finalLojaId && slug) {
             const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
             const lojaSnap = await getDocs(lojaQuery);
             if (!lojaSnap.empty) {
