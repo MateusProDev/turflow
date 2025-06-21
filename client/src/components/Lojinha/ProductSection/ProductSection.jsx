@@ -92,7 +92,7 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
                     <span className="lojinha-product-desconto">{desconto}% OFF</span>
                   )}
                   <img
-                    src={prod.imagem || "/placeholder-produto.jpg"}
+                    src={prod.imagem || prod.image || prod.img || "/placeholder-produto.jpg"}
                     alt={prod.name}
                     className="product-image"
                     onClick={() => navigate(`/${slug}/produto/${prod.slug}`)}
