@@ -199,7 +199,6 @@ const AppContent = () => {
         <Route path="/" element={<Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
         <Route path="/categoria/:categoria" element={<CategoriaPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
         <Route path="/pacote/:produtoSlug" element={<ProdutoPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
-        <Route path="/produto/:produtoSlug" element={<ProdutoPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     );

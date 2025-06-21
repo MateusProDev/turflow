@@ -32,8 +32,10 @@ import NavBar from "../NavBar/NavBar";
 import Footer from "../Footer/Footer";
 import "./ProdutoPage.css";
 
-const ProdutoPage = ({ lojaId: propLojaId, lojaData }) => {
-  const { slug, produtoSlug } = useParams();
+const ProdutoPage = (props) => {
+  const params = useParams();
+  const produtoSlug = params.produtoSlug || params.pacoteSlug;
+  const { lojaId: propLojaId, lojaData } = props;
   const navigate = useNavigate();
   // Detecta se está na rota /pacote/:produtoSlug
   const isPacoteRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/pacote/');
