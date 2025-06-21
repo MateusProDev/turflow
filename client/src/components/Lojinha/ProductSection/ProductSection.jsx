@@ -86,13 +86,15 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
           ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} />)
           : showProducts.map((prod) => {
               const desconto = getDiscount(prod.price, prod.anchorPrice);
+              console.log('[DEBUG] Produto recebido:', prod);
+              const imageUrl = prod.imagem || prod.image || prod.img || prod.foto || prod.urlImagem || "/placeholder-produto.jpg";
               return (
                 <div key={prod.id} className="lojinha-product-card">
                   {desconto > 0 && (
                     <span className="lojinha-product-desconto">{desconto}% OFF</span>
                   )}
                   <img
-                    src={prod.imagem || prod.image || prod.img || "/placeholder-produto.jpg"}
+                    src={imageUrl}
                     alt={prod.name}
                     className="product-image"
                     onClick={() => navigate(`/${slug}/produto/${prod.slug}`)}
