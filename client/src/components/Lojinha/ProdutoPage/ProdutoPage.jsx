@@ -304,15 +304,17 @@ const ProdutoPage = (props) => {
   }
 
   if (!produto || !loja) {
+    // DEBUG: Mostra o produto recebido se não renderizar
     return (
       <>
         <Container sx={{ textAlign: 'center', mt: 10, p: 2 }}>
-          <Typography variant="h6">Produto não encontrado</Typography>
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}>
-            Voltar para Home
-          </Button>
+          <Typography variant="h6">Pacote não encontrado</Typography>
+          <pre style={{textAlign:'left',background:'#eee',padding:8,borderRadius:8,overflowX:'auto',fontSize:12}}>
+            {produto ? JSON.stringify(produto, null, 2) : 'Nenhum produto carregado.'}
+          </pre>
+          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}>Voltar para Home</Button>
         </Container>
-        <Footer nomeLoja="" footerData={{}} />
+        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
       </>
     );
   }
