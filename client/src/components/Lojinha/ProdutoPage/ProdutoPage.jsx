@@ -319,9 +319,15 @@ const ProdutoPage = (props) => {
     );
   }
 
+  // Mostra os dados crus do Firestore acima do layout detalhado
+  // (mantém toda a lógica e estrutura atual)
   return (
     <>
       <Container maxWidth="lg" className="produto-page-container">
+        <Box sx={{ background: '#f8f9fa', borderRadius: 2, p: 2, mb: 3 }}>
+          <Typography variant="subtitle2" sx={{ mb: 1, color: '#888' }}>Conteúdo bruto do Firestore:</Typography>
+          <pre style={{fontSize:12,overflowX:'auto',margin:0}}>{JSON.stringify(produto, null, 2)}</pre>
+        </Box>
         <Button
           variant="text"
           startIcon={<ArrowBackIcon />}
