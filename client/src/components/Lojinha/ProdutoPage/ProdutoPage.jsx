@@ -23,7 +23,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails
-} from "@mui/material";]
+} from "@mui/material";
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
