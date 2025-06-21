@@ -33,10 +33,10 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
   };
 
   useEffect(() => {
-    async function fetchLojaIdAndProdutos() {
+    async function ensureLojaIdAndFetchProdutos() {
       setLoading(true);
+      let finalLojaId = propLojaId;
       try {
-        let finalLojaId = propLojaId;
         if (!finalLojaId) {
           // Detecta domínio customizado
           const isCustomDomain =
@@ -46,7 +46,7 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
             !window.location.host.includes('onrender.com');
           if (isCustomDomain && lojaData && lojaData.id) {
             finalLojaId = lojaData.id;
-          } else if (!isCustomDomain) {
+          } else if (!isCustomDomain && slug) {
             // Busca a loja pelo slug
             const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
             const lojaSnap = await getDocs(lojaQuery);
@@ -57,10 +57,11 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
         }
         if (!finalLojaId) {
           setLoading(false);
+          setProdutos([]);
+          setCategorias([]);
           return;
         }
         setLojaId(finalLojaId);
-
         // Busca todos os produtos ativos
         const produtosRef = collection(db, `lojas/${finalLojaId}/produtos`);
         const produtosQuery = query(produtosRef, where("ativo", "==", true));
@@ -87,14 +88,17 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
         });
         setProdutos(produtosOrdenados);
       } catch (error) {
+        setProdutos([]);
+        setCategorias([]);
         console.error("Erro completo:", error);
       } finally {
         setLoading(false);
       }
     }
-
-    fetchLojaIdAndProdutos();
-  }, [slug, categoria]);
+    if (categoria) {
+      ensureLojaIdAndFetchProdutos();
+    }
+  }, [slug, categoria, propLojaId, lojaData]);
 
   // Funções de drag para carrossel
   const handleMouseDown = (e) => {

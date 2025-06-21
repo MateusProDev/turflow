@@ -138,15 +138,70 @@ const ProdutoPage = (props) => {
   };
 
   useEffect(() => {
-    // Em domínio customizado, não exija slug, só produtoSlug e lojaId
-    const idLoja = propLojaId || (loja && loja.id);
-    if ((!produtoSlug) || (!loja && !idLoja)) {
-      setError("Dados insuficientes para buscar o pacote/produto.");
-      setLoading(false);
-      return;
+    async function ensureLojaIdAndFetchProduto() {
+      setLoading(true);
+      setError(null);
+      let finalLojaId = propLojaId;
+      let lojaDataObj = lojaData;
+      try {
+        if (!finalLojaId) {
+          // Detecta domínio customizado
+          const isCustomDomain =
+            typeof window !== 'undefined' &&
+            !window.location.host.endsWith('vercel.app') &&
+            !window.location.host.includes('localhost') &&
+            !window.location.host.includes('onrender.com');
+          if (isCustomDomain && lojaData && lojaData.id) {
+            finalLojaId = lojaData.id;
+            lojaDataObj = lojaData;
+          } else if (!isCustomDomain && slug) {
+            // Busca a loja pelo slug
+            const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
+            const lojaSnap = await getDocs(lojaQuery);
+            if (!lojaSnap.empty) {
+              finalLojaId = lojaSnap.docs[0].id;
+              lojaDataObj = { id: lojaSnap.docs[0].id, ...lojaSnap.docs[0].data() };
+            }
+          }
+        }
+        if (!finalLojaId) {
+          setError("Loja não encontrada.");
+          setLoading(false);
+          return;
+        }
+        setLoja(lojaDataObj);
+        // Busca dados do produto
+        let produtoData = null;
+        const produtoQuery = query(
+          collection(db, `lojas/${finalLojaId}/produtos`),
+          where("slug", "==", produtoSlug)
+        );
+        const produtosSnap = await getDocs(produtoQuery);
+        if (!produtosSnap.empty) {
+          produtoData = { id: produtosSnap.docs[0].id, ...produtosSnap.docs[0].data() };
+        } else {
+          const produtoDocRef = doc(db, `lojas/${finalLojaId}/produtos`, produtoSlug);
+          const produtoDocSnap = await getDoc(produtoDocRef);
+          if (produtoDocSnap.exists()) {
+            produtoData = { id: produtoDocSnap.id, ...produtoDocSnap.data() };
+          } else {
+            throw new Error(`Pacote/Produto não encontrado na loja "${lojaDataObj?.nome || ''}".`);
+          }
+        }
+        if (produtoData && !Array.isArray(produtoData.images)) {
+          produtoData.images = [];
+        }
+        setProduto(produtoData);
+      } catch (err) {
+        setError(err.message || "Erro ao carregar dados do produto.");
+      } finally {
+        setLoading(false);
+      }
     }
-    fetchProdutoData();
-  }, [slug, produtoSlug, loja, propLojaId]);
+    if (produtoSlug) {
+      ensureLojaIdAndFetchProduto();
+    }
+  }, [slug, produtoSlug, propLojaId, lojaData]);
 
   useEffect(() => {
     if (produto) {
