@@ -210,7 +210,12 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
                     )}
                     R$ {Number(produto.price).toFixed(2)}
                   </div>
-                  <button className="categoria-produto-btn">Adicionar ao carrinho</button>
+                  <a
+                    href={`/pacote/${produto.slug}`}
+                    className="categoria-produto-btn categoria-produto-btn-detalhes"
+                  >
+                    Ver detalhes
+                  </a>
                 </div>
               );
             })}
