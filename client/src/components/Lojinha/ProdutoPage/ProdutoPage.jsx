@@ -23,7 +23,7 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails
-} from "@mui/material";
+} from "@mui/material";]
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -139,13 +139,14 @@ const ProdutoPage = (props) => {
 
   useEffect(() => {
     // Em domínio customizado, não exija slug, só produtoSlug e lojaId
-    if ((!produtoSlug) || (!loja && !lojaId && !propLojaId)) {
+    const idLoja = propLojaId || (loja && loja.id);
+    if ((!produtoSlug) || (!loja && !idLoja)) {
       setError("Dados insuficientes para buscar o pacote/produto.");
       setLoading(false);
       return;
     }
     fetchProdutoData();
-  }, [slug, produtoSlug, loja, lojaId, propLojaId]);
+  }, [slug, produtoSlug, loja, propLojaId]);
 
   useEffect(() => {
     if (produto) {
