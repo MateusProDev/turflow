@@ -391,7 +391,7 @@ const ProdutoPage = (props) => {
   if (!propLojaId || !lojaData) {
     return spinner;
   }
-
+ 
   // Mostra os dados crus do Firestore acima do layout detalhado
   // (mantém toda a lógica e estrutura atual)
   return (
