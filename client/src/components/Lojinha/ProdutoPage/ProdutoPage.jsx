@@ -74,21 +74,18 @@ const ProdutoPage = (props) => {
     try {
       let finalLojaId = propLojaId;
       let lojaDataObj = lojaData;
-      // Detecta domínio customizado
-      const isCustomDomain =
-        typeof window !== 'undefined' &&
-        !window.location.host.endsWith('vercel.app') &&
-        !window.location.host.includes('localhost') &&
-        !window.location.host.includes('onrender.com');
-      if (isCustomDomain) {
-        // No domínio personalizado, use apenas o lojaId das props
-        if (!finalLojaId && lojaData && lojaData.id) {
+      if (!finalLojaId) {
+        // Detecta domínio customizado
+        const isCustomDomain =
+          typeof window !== 'undefined' &&
+          !window.location.host.endsWith('vercel.app') &&
+          !window.location.host.includes('localhost') &&
+          !window.location.host.includes('onrender.com');
+        if (isCustomDomain && lojaData && lojaData.id) {
           finalLojaId = lojaData.id;
           lojaDataObj = lojaData;
-        }
-      } else {
-        // No domínio padrão, busca pelo slug se necessário
-        if (!finalLojaId && slug) {
+        } else if (!isCustomDomain) {
+          // Busca a loja pelo slug
           const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
           const lojaSnap = await getDocs(lojaQuery);
           if (!lojaSnap.empty) {
@@ -102,6 +99,7 @@ const ProdutoPage = (props) => {
         return;
       }
       setLoja(lojaDataObj);
+
       // Busca dados do produto/pacote SEMPRE na coleção produtos
       let produtoData = null;
       const produtoQuery = query(
@@ -120,11 +118,19 @@ const ProdutoPage = (props) => {
           throw new Error(`Pacote/Produto não encontrado na loja "${lojaDataObj?.nome || ''}".`);
         }
       }
+
+      // Garante que images seja um array
       if (produtoData && !Array.isArray(produtoData.images)) {
         produtoData.images = [];
       }
+
+      // Validação de dados básicos
+      if (!produtoData.name || !produtoData.price) {
+        console.warn("Produto com dados incompletos:", produtoData);
+      }
       setProduto(produtoData);
     } catch (err) {
+      console.error("Erro ao buscar dados:", err);
       setError(err.message || "Erro ao carregar dados do produto.");
     } finally {
       setLoading(false);
@@ -132,70 +138,15 @@ const ProdutoPage = (props) => {
   };
 
   useEffect(() => {
-    async function ensureLojaIdAndFetchProduto() {
-      setLoading(true);
-      setError(null);
-      let finalLojaId = propLojaId;
-      let lojaDataObj = lojaData;
-      try {
-        if (!finalLojaId) {
-          // Detecta domínio customizado
-          const isCustomDomain =
-            typeof window !== 'undefined' &&
-            !window.location.host.endsWith('vercel.app') &&
-            !window.location.host.includes('localhost') &&
-            !window.location.host.includes('onrender.com');
-          if (isCustomDomain && lojaData && lojaData.id) {
-            finalLojaId = lojaData.id;
-            lojaDataObj = lojaData;
-          } else if (!isCustomDomain && slug) {
-            // Busca a loja pelo slug
-            const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
-            const lojaSnap = await getDocs(lojaQuery);
-            if (!lojaSnap.empty) {
-              finalLojaId = lojaSnap.docs[0].id;
-              lojaDataObj = { id: lojaSnap.docs[0].id, ...lojaSnap.docs[0].data() };
-            }
-          }
-        }
-        if (!finalLojaId) {
-          setError("Loja não encontrada.");
-          setLoading(false);
-          return;
-        }
-        setLoja(lojaDataObj);
-        // Busca dados do produto
-        let produtoData = null;
-        const produtoQuery = query(
-          collection(db, `lojas/${finalLojaId}/produtos`),
-          where("slug", "==", produtoSlug)
-        );
-        const produtosSnap = await getDocs(produtoQuery);
-        if (!produtosSnap.empty) {
-          produtoData = { id: produtosSnap.docs[0].id, ...produtosSnap.docs[0].data() };
-        } else {
-          const produtoDocRef = doc(db, `lojas/${finalLojaId}/produtos`, produtoSlug);
-          const produtoDocSnap = await getDoc(produtoDocRef);
-          if (produtoDocSnap.exists()) {
-            produtoData = { id: produtoDocSnap.id, ...produtoDocSnap.data() };
-          } else {
-            throw new Error(`Pacote/Produto não encontrado na loja "${lojaDataObj?.nome || ''}".`);
-          }
-        }
-        if (produtoData && !Array.isArray(produtoData.images)) {
-          produtoData.images = [];
-        }
-        setProduto(produtoData);
-      } catch (err) {
-        setError(err.message || "Erro ao carregar dados do produto.");
-      } finally {
-        setLoading(false);
-      }
+    // Em domínio customizado, não exija slug, só produtoSlug e lojaId
+    const idLoja = propLojaId || (loja && loja.id);
+    if ((!produtoSlug) || (!loja && !idLoja)) {
+      setError("Dados insuficientes para buscar o pacote/produto.");
+      setLoading(false);
+      return;
     }
-    if (produtoSlug) {
-      ensureLojaIdAndFetchProduto();
-    }
-  }, [slug, produtoSlug, propLojaId, lojaData]);
+    fetchProdutoData();
+  }, [slug, produtoSlug, loja, propLojaId]);
 
   useEffect(() => {
     if (produto) {
@@ -326,72 +277,50 @@ const ProdutoPage = (props) => {
   const mainImageUrl = imagesArray[safeSelectedImage] || placeholderLarge;
   const currentPrice = getCurrentPricePerUnit();
 
-  // Todos os hooks devem vir antes de qualquer return
-  // useEffect para buscar o produto
-  useEffect(() => {
-    if (!propLojaId || !produtoSlug) return;
-    async function fetchProduto() {
-      setLoading(true);
-      setError(null);
-      try {
-        let finalLojaId = propLojaId;
-        let lojaDataObj = lojaData;
-        // Busca dados do produto/pacote SEMPRE na coleção produtos
-        let produtoData = null;
-        const produtoQuery = query(
-          collection(db, `lojas/${finalLojaId}/produtos`),
-          where("slug", "==", produtoSlug)
-        );
-        const produtosSnap = await getDocs(produtoQuery);
-        if (!produtosSnap.empty) {
-          produtoData = { id: produtosSnap.docs[0].id, ...produtosSnap.docs[0].data() };
-        } else {
-          const produtoDocRef = doc(db, `lojas/${finalLojaId}/produtos`, produtoSlug);
-          const produtoDocSnap = await getDoc(produtoDocRef);
-          if (produtoDocSnap.exists()) {
-            produtoData = { id: produtoDocSnap.id, ...produtoDocSnap.data() };
-          } else {
-            throw new Error(`Pacote/Produto não encontrado na loja "${lojaDataObj?.nome || ''}".`);
-          }
-        }
-        if (produtoData && !Array.isArray(produtoData.images)) {
-          produtoData.images = [];
-        }
-        setProduto(produtoData);
-      } catch (err) {
-        setError(err.message || "Erro ao carregar dados do produto.");
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProduto();
-  }, [propLojaId, produtoSlug]);
-
-  // Verificação para domínio customizado: só renderiza se propLojaId e lojaData existirem
-  // Hooks (useState, useEffect, etc.)
-
-  // Verificação para garantir dados essenciais antes de renderizar
-  // Spinner CSS
-  const spinnerStyle = {
-    display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh',
-  };
-  const spinner = (
-    <div style={spinnerStyle}>
-      <div style={{
-        border: '8px solid #f3f3f3',
-        borderTop: '8px solid #555',
-        borderRadius: '50%',
-        width: 60,
-        height: 60,
-        animation: 'spin 1s linear infinite',
-      }} />
-      <style>{`@keyframes spin {0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);}}`}</style>
-    </div>
-  );
-  if (!propLojaId || !lojaData) {
-    return spinner;
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress size={50} />
+      </Box>
+    );
   }
- 
+
+  if (error) {
+    return (
+      <>
+        <NavBar
+          nomeLoja={loja?.nome || "Erro"}
+          logoUrlState={loja?.logoUrl || ""}
+          exibirLogo={loja?.exibirLogo !== false}
+          onCartClick={() => loja?.id ? navigate(`/carrinho/${loja.id}`) : null}
+        />
+        <Container sx={{ textAlign: 'center', mt: 2, p: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
+          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate(slug ? `/${slug}` : '/')}>
+            Voltar
+          </Button>
+        </Container>
+        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
+      </>
+    );
+  }
+
+  if (!produto || !loja) {
+    // DEBUG: Mostra o produto recebido se não renderizar
+    return (
+      <>
+        <Container sx={{ textAlign: 'center', mt: 10, p: 2 }}>
+          <Typography variant="h6">Pacote não encontrado</Typography>
+          <pre style={{textAlign:'left',background:'#eee',padding:8,borderRadius:8,overflowX:'auto',fontSize:12}}>
+            {produto ? JSON.stringify(produto, null, 2) : 'Nenhum produto carregado.'}
+          </pre>
+          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}>Voltar para Home</Button>
+        </Container>
+        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
+      </>
+    );
+  }
+
   // Mostra os dados crus do Firestore acima do layout detalhado
   // (mantém toda a lógica e estrutura atual)
   return (
