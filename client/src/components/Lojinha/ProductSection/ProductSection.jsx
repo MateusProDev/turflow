@@ -160,3 +160,6 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
 };
 
 export default ProductSection;
+
+// Todos os links internos já usam navigate para /pacote/:produtoSlug
+// Nenhum <a href=...> para rotas internas

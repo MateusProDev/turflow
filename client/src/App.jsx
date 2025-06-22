@@ -21,6 +21,7 @@ import LojinhaPreview from './components/LojinhaPreview/LojinhaPreview';
 import CategoriaPage from "./components/Lojinha/CategoriaPage/CategoriaPage";
 import ProdutoPage from "./components/Lojinha/ProdutoPage/ProdutoPage";
 import ProdutosPage from "./pages/ProdutosPage";
+import CustomDomainRouter from "./CustomDomainRouter/CustomDomainRouter";
 
 // Utils
 import { verificarPlanoUsuario } from './utils/verificarPlanoUsuario';
@@ -109,6 +110,35 @@ function ProdutoPageWrapper() {
   if (loading) return <div>Carregando pacote...</div>;
   if (!lojaId) return <div>Loja não encontrada.</div>;
   return <ProdutoPage lojaId={lojaId} />;
+}
+
+// Novo componente para rotas públicas no domínio customizado
+function CustomDomainRouter({ lojaId, lojaData }) {
+  return (
+    <Routes>
+      <Route path="/" element={
+        <Lojinha
+          lojaId={lojaId}
+          lojaData={lojaData}
+          logoUrl={lojaData.logoUrl}
+        />
+      } />
+      <Route path="/categoria/:categoria" element={
+        <CategoriaPage
+          lojaId={lojaId}
+          lojaData={lojaData}
+        />
+      } />
+      <Route path="/pacote/:produtoSlug" element={
+        <ProdutoPage
+          lojaId={lojaId}
+          lojaData={lojaData}
+        />
+      } />
+      {/* Outras rotas públicas se necessário */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
 
 const AppContent = () => {
@@ -225,13 +255,7 @@ const AppContent = () => {
         </div>
       );
     }
-    return (
-      <Routes>
-        <Route path="/" element={<Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} logoUrl={customDomainLoja.loja.logoUrl} />} />
-        <Route path="/categoria/:categoria" element={<CategoriaPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
-        <Route path="/pacote/:produtoSlug" element={<ProdutoPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
-      </Routes>
-    );
+    return <CustomDomainRouter lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />;
   }
 
   return (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { db } from "../../../firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import "./CategoriaPage.css";
@@ -26,6 +26,7 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
   const isDragging = useRef(false);
   const startX = useRef(0);
   const scrollLeft = useRef(0);
+  const navigate = useNavigate();
 
   // Função para calcular o desconto
   const getDiscount = (price, anchorPrice) => {
@@ -145,9 +146,13 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
     carouselRef.current.scrollLeft = scrollLeft.current - walk;
   };
 
-  if (!lojaId || !lojaData) {
-    console.log('[DEBUG] CategoriaPage: lojaId ou lojaData ausente, aguardando...');
-    return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
+  if (!propLojaId || !lojaData) {
+    return (
+      <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'70vh'}}>
+        <div className="spinner" style={{width:60,height:60,border:'6px solid #eee',borderTop:'6px solid #1976d2',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
+        <style>{`@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`}</style>
+      </div>
+    );
   }
 
   return (
@@ -159,15 +164,13 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
         <div className="categoria-lista-categorias">
           <span>Categorias: </span>
           {categorias.map(cat => (
-            <a
+            <button
               key={cat}
-              href={
-                `/loja/${slug}/categoria/${encodeURIComponent(cat)}`
-              }
+              onClick={() => navigate(`/categoria/${encodeURIComponent(cat)}`)}
               className={`categoria-link${cat.toLowerCase() === (categoria || '').toLowerCase() ? ' ativa' : ''}`}
             >
               {cat}
-            </a>
+            </button>
           ))}
         </div>
       )}
@@ -224,12 +227,12 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
                     )}
                     R$ {Number(produto.price).toFixed(2)}
                   </div>
-                  <a
-                    href={`/pacote/${produto.slug}`}
+                  <button
                     className="categoria-produto-btn categoria-produto-btn-detalhes"
+                    onClick={() => navigate(`/pacote/${produto.slug}`)}
                   >
                     Ver detalhes
-                  </a>
+                  </button>
                 </div>
               );
             })}
