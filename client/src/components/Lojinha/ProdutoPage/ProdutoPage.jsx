@@ -372,7 +372,24 @@ const ProdutoPage = (props) => {
 
   // Verificação para garantir dados essenciais antes de renderizar
   if (!propLojaId || !lojaData) {
-    return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
+    // Spinner CSS
+    const spinnerStyle = {
+      display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh',
+    };
+    const spinner = (
+      <div style={spinnerStyle}>
+        <div style={{
+          border: '8px solid #f3f3f3',
+          borderTop: '8px solid #555',
+          borderRadius: '50%',
+          width: 60,
+          height: 60,
+          animation: 'spin 1s linear infinite',
+        }} />
+        <style>{`@keyframes spin {0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);}}`}</style>
+      </div>
+    );
+    return spinner;
   }
 
   // Mostra os dados crus do Firestore acima do layout detalhado
