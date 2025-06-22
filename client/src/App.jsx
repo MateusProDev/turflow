@@ -166,29 +166,33 @@ const AppContent = () => {
 
     console.log("[DEBUG] AppContent: host =", host, "isCustomDomain =", isCustomDomain);
 
-    if (isCustomDomain && !customDomainChecked) {
-      console.log("[DEBUG] AppContent: Buscando loja para domínio customizado...");
-      fetch("/public/loja")
-        .then(async (res) => {
-          console.log("[DEBUG] /public/loja status:", res.status);
-          if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
-          return res.json();
-        })
-        .then((data) => {
-          console.log("[DEBUG] /public/loja data:", data);
-          if (data && data.lojaId && data.loja) {
-            setCustomDomainLoja({ lojaId: data.lojaId, loja: data.loja });
-          }
-          setCustomDomainChecked(true);
-        })
-        .catch((err) => {
-          console.log("[DEBUG] /public/loja erro:", err);
-          setCustomDomainChecked(true);
-        });
+    if (isCustomDomain) {
+      if (!customDomainChecked) {
+        console.log("[DEBUG] AppContent: Buscando loja para domínio customizado...");
+        fetch("/public/loja")
+          .then(async (res) => {
+            console.log("[DEBUG] /public/loja status:", res.status);
+            if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
+            return res.json();
+          })
+          .then((data) => {
+            console.log("[DEBUG] /public/loja data:", data);
+            if (data && data.lojaId && data.loja) {
+              setCustomDomainLoja({ lojaId: data.lojaId, loja: data.loja });
+            }
+            setCustomDomainChecked(true);
+          })
+          .catch((err) => {
+            console.log("[DEBUG] /public/loja erro:", err);
+            setCustomDomainChecked(true);
+          });
+      }
     } else {
       setCustomDomainChecked(true);
     }
-  }, [customDomainChecked]);
+    // O useEffect deve rodar só uma vez no mount!
+    // eslint-disable-next-line
+  }, []);
 
   // Mostra um spinner enquanto verifica o status de autenticação
   if (loading) {
