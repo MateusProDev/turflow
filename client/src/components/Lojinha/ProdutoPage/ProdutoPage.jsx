@@ -371,24 +371,24 @@ const ProdutoPage = (props) => {
   // Hooks (useState, useEffect, etc.)
 
   // Verificação para garantir dados essenciais antes de renderizar
+  // Spinner CSS
+  const spinnerStyle = {
+    display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh',
+  };
+  const spinner = (
+    <div style={spinnerStyle}>
+      <div style={{
+        border: '8px solid #f3f3f3',
+        borderTop: '8px solid #555',
+        borderRadius: '50%',
+        width: 60,
+        height: 60,
+        animation: 'spin 1s linear infinite',
+      }} />
+      <style>{`@keyframes spin {0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);}}`}</style>
+    </div>
+  );
   if (!propLojaId || !lojaData) {
-    // Spinner CSS
-    const spinnerStyle = {
-      display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh',
-    };
-    const spinner = (
-      <div style={spinnerStyle}>
-        <div style={{
-          border: '8px solid #f3f3f3',
-          borderTop: '8px solid #555',
-          borderRadius: '50%',
-          width: 60,
-          height: 60,
-          animation: 'spin 1s linear infinite',
-        }} />
-        <style>{`@keyframes spin {0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);}}`}</style>
-      </div>
-    );
     return spinner;
   }
 
