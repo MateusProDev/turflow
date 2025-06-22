@@ -326,51 +326,8 @@ const ProdutoPage = (props) => {
   const mainImageUrl = imagesArray[safeSelectedImage] || placeholderLarge;
   const currentPrice = getCurrentPricePerUnit();
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress size={50} />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <NavBar
-          nomeLoja={loja?.nome || "Erro"}
-          logoUrlState={loja?.logoUrl || ""}
-          exibirLogo={loja?.exibirLogo !== false}
-          onCartClick={() => loja?.id ? navigate(`/carrinho/${loja.id}`) : null}
-        />
-        <Container sx={{ textAlign: 'center', mt: 2, p: 2 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate(slug ? `/${slug}` : '/')}>
-            Voltar
-          </Button>
-        </Container>
-        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
-      </>
-    );
-  }
-
-  if (!produto || !loja) {
-    // DEBUG: Mostra o produto recebido se não renderizar
-    return (
-      <>
-        <Container sx={{ textAlign: 'center', mt: 10, p: 2 }}>
-          <Typography variant="h6">Pacote não encontrado</Typography>
-          <pre style={{textAlign:'left',background:'#eee',padding:8,borderRadius:8,overflowX:'auto',fontSize:12}}>
-            {produto ? JSON.stringify(produto, null, 2) : 'Nenhum produto carregado.'}
-          </pre>
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}>Voltar para Home</Button>
-        </Container>
-        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
-      </>
-    );
-  }
-
-  // useEffect deve ficar antes de qualquer return
+  // Todos os hooks devem vir antes de qualquer return
+  // useEffect para buscar o produto
   useEffect(() => {
     if (!propLojaId || !produtoSlug) return;
     async function fetchProduto() {
@@ -411,6 +368,9 @@ const ProdutoPage = (props) => {
   }, [propLojaId, produtoSlug]);
 
   // Verificação para domínio customizado: só renderiza se propLojaId e lojaData existirem
+  // Hooks (useState, useEffect, etc.)
+
+  // Verificação para garantir dados essenciais antes de renderizar
   if (!propLojaId || !lojaData) {
     return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
   }
