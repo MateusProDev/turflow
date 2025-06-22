@@ -8,7 +8,7 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (item) => {
     setCart((prevCart) => [...prevCart, item]);
-    setTotal((prevTotal) => prevTotal + (item.preco || item.price || 0));
+    setTotal((prevTotal) => prevTotal + (item.preco || item.price || 0)); 
   };
 
   const removeFromCart = (index) => {

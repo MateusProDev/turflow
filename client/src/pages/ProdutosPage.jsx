@@ -33,7 +33,7 @@ const ProdutosPage = ({ lojaId }) => {
 
   if (loading) return <div>Carregando...</div>;
   if (!user) return <div>Você não está autenticado.</div>;
-
+ 
   return (
     <div>
       <h2>Todos os Produtos</h2>

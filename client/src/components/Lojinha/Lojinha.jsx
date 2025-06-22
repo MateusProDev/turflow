@@ -22,7 +22,7 @@ function debounce(func, delay) {
     const later = () => {
       clearTimeout(timeout);
       func(...args);
-    };
+    }; 
     clearTimeout(timeout);
     timeout = setTimeout(later, delay);
   };

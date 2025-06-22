@@ -16,7 +16,7 @@ const LojaPage = () => {
       } else {
         console.log("Loja não encontrada");
       }
-    });
+    }); 
   }, [slug]); // Atualiza quando o `slug` mudar
 
   if (!loja) {

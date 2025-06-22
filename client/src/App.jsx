@@ -167,32 +167,24 @@ const AppContent = () => {
     console.log("[DEBUG] AppContent: host =", host, "isCustomDomain =", isCustomDomain);
 
     if (isCustomDomain) {
-      if (!customDomainChecked) {
-        console.log("[DEBUG] AppContent: Buscando loja para domínio customizado...");
-        fetch("/public/loja")
-          .then(async (res) => {
-            console.log("[DEBUG] /public/loja status:", res.status);
-            if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
-            return res.json();
-          })
-          .then((data) => {
-            console.log("[DEBUG] /public/loja data:", data);
-            if (data && data.lojaId && data.loja) {
-              setCustomDomainLoja({ lojaId: data.lojaId, loja: data.loja });
-            }
-            setCustomDomainChecked(true);
-          })
-          .catch((err) => {
-            console.log("[DEBUG] /public/loja erro:", err);
-            setCustomDomainChecked(true);
-          });
-      }
+      fetch("/public/loja")
+        .then(async (res) => {
+          if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
+          return res.json();
+        })
+        .then((data) => {
+          if (data && data.lojaId && data.loja) {
+            setCustomDomainLoja({ lojaId: data.lojaId, loja: data.loja });
+          }
+          setCustomDomainChecked(true);
+        })
+        .catch((err) => {
+          setCustomDomainChecked(true);
+        });
     } else {
       setCustomDomainChecked(true);
     }
-    // O useEffect deve rodar só uma vez no mount!
-    // eslint-disable-next-line
-  }, []);
+  }, []); // Executa só uma vez ao montar
 
   // Mostra um spinner enquanto verifica o status de autenticação
   if (loading) {
@@ -217,41 +209,27 @@ const AppContent = () => {
       </div>
     );
   }
-  if (
-    typeof window !== "undefined" &&
-    !window.location.host.endsWith("vercel.app") &&
-    !window.location.host.includes("localhost") &&
-    !window.location.host.includes("onrender.com")
-  ) {
-    if (!customDomainChecked) {
-      return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando loja...</h2></div>;
+  const host = typeof window !== "undefined" ? window.location.host : "";
+  const isCustomDomain =
+    !host.endsWith("vercel.app") &&
+    !host.includes("localhost") &&
+    !host.includes("onrender.com");
+
+  // Renderização das rotas customizadas
+  if (isCustomDomain) {
+    if (!customDomainChecked || !customDomainLoja) {
+      return (
+        <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'70vh'}}>
+          <div className="spinner" style={{width:60,height:60,border:'6px solid #eee',borderTop:'6px solid #1976d2',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
+          <style>{`@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`}</style>
+        </div>
+      );
     }
-    if (!customDomainLoja || !customDomainLoja.lojaId || !customDomainLoja.loja) {
-      return <div style={{textAlign:'center',marginTop:80,color:'red'}}><h2>Loja não encontrada ou fora do ar.</h2></div>;
-    }
-    console.log('[DEBUG] AppContent: Renderizando rotas customizadas com', customDomainLoja);
     return (
       <Routes>
-        <Route path="/" element={
-          <Lojinha
-            lojaId={customDomainLoja.lojaId}
-            lojaData={customDomainLoja.loja}
-            logoUrl={customDomainLoja.loja.logoUrl}
-          />
-        } />
-        <Route path="/categoria/:categoria" element={
-          <CategoriaPage
-            lojaId={customDomainLoja.lojaId}
-            lojaData={customDomainLoja.loja}
-          />
-        } />
-        <Route path="/pacote/:produtoSlug" element={
-          <ProdutoPage
-            lojaId={customDomainLoja.lojaId}
-            lojaData={customDomainLoja.loja}
-          />
-        } />
-        {/* ...outras rotas */}
+        <Route path="/" element={<Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} logoUrl={customDomainLoja.loja.logoUrl} />} />
+        <Route path="/categoria/:categoria" element={<CategoriaPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
+        <Route path="/pacote/:produtoSlug" element={<ProdutoPage lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
       </Routes>
     );
   }

@@ -5,7 +5,7 @@ import { doc, onSnapshot, updateDoc, arrayUnion, arrayRemove } from "firebase/fi
 const CategoriasContext = createContext();
 
 export const useCategorias = () => useContext(CategoriasContext);
-
+ 
 export const CategoriasProvider = ({ lojaId, children }) => {
   const [categoriasData, setCategoriasData] = useState({
     categorias: [],
