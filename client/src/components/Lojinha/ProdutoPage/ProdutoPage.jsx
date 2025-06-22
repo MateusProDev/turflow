@@ -370,9 +370,50 @@ const ProdutoPage = (props) => {
     );
   }
 
+  // Verificação para domínio customizado: só renderiza se propLojaId e lojaData existirem
   if (!propLojaId || !lojaData) {
     return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
   }
+
+  // useEffect de busca do produto deve depender de propLojaId
+  useEffect(() => {
+    if (!propLojaId || !produtoSlug) return;
+    async function fetchProduto() {
+      setLoading(true);
+      setError(null);
+      try {
+        let finalLojaId = propLojaId;
+        let lojaDataObj = lojaData;
+        // Busca dados do produto/pacote SEMPRE na coleção produtos
+        let produtoData = null;
+        const produtoQuery = query(
+          collection(db, `lojas/${finalLojaId}/produtos`),
+          where("slug", "==", produtoSlug)
+        );
+        const produtosSnap = await getDocs(produtoQuery);
+        if (!produtosSnap.empty) {
+          produtoData = { id: produtosSnap.docs[0].id, ...produtosSnap.docs[0].data() };
+        } else {
+          const produtoDocRef = doc(db, `lojas/${finalLojaId}/produtos`, produtoSlug);
+          const produtoDocSnap = await getDoc(produtoDocRef);
+          if (produtoDocSnap.exists()) {
+            produtoData = { id: produtoDocSnap.id, ...produtoDocSnap.data() };
+          } else {
+            throw new Error(`Pacote/Produto não encontrado na loja "${lojaDataObj?.nome || ''}".`);
+          }
+        }
+        if (produtoData && !Array.isArray(produtoData.images)) {
+          produtoData.images = [];
+        }
+        setProduto(produtoData);
+      } catch (err) {
+        setError(err.message || "Erro ao carregar dados do produto.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProduto();
+  }, [propLojaId, produtoSlug]);
 
   // Mostra os dados crus do Firestore acima do layout detalhado
   // (mantém toda a lógica e estrutura atual)
