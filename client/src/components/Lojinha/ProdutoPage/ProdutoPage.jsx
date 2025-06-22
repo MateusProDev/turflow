@@ -284,8 +284,8 @@ const ProdutoPage = (props) => {
     !window.location.host.includes('localhost') &&
     !window.location.host.includes('onrender.com');
 
-  // Se domínio customizado e dados ainda não chegaram, mostra loading
-  if (isCustomDomain && (!propLojaId || !lojaData)) {
+  // Se domínio customizado e dados ainda não chegaram, mostra loading e não executa mais nada
+  if (isCustomDomain && (!props.lojaId || !props.lojaData)) {
     return (
       <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'70vh'}}>
         <div className="spinner" style={{width:60,height:60,border:'6px solid #eee',borderTop:'6px solid #1976d2',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
@@ -418,7 +418,7 @@ const ProdutoPage = (props) => {
                 </Box>
                 {/* Condições de Preço */}
                 {produto.priceConditions && produto.priceConditions.length > 0 && (
-                  <Box mb={3} sx={{ backgroundColor: '#f8f9fa', p: 2, borderRadius: 1 }}> 
+                  <Box mb={3} sx={{ backgroundColor: '#f8f9fa', p: 2, borderRadius: 1}}> 
                     <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
                       <LocalOfferIcon sx={{ mr: 1, verticalAlign: 'middle' }} />
                       Descontos progressivos:
