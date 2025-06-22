@@ -225,7 +225,7 @@ const AppContent = () => {
     if (!customDomainLoja || !customDomainLoja.lojaId || !customDomainLoja.loja) {
       return <div style={{textAlign:'center',marginTop:80,color:'red'}}><h2>Loja não encontrada ou fora do ar.</h2></div>;
     }
-    // Só renderiza as rotas se customDomainLoja está OK!
+    console.log('[DEBUG] AppContent: Renderizando rotas customizadas com', customDomainLoja);
     return (
       <Routes>
         <Route path="/" element={

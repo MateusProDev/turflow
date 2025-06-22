@@ -33,6 +33,7 @@ import Footer from "../Footer/Footer";
 import "./ProdutoPage.css";
 
 const ProdutoPage = (props) => {
+  console.log('[DEBUG] ProdutoPage: props recebidas', props);
   const params = useParams();
   const produtoSlug = params.produtoSlug || params.pacoteSlug;
   const slug = params.slug; // Corrige: pega o slug da loja se existir
@@ -138,6 +139,7 @@ const ProdutoPage = (props) => {
   };
 
   useEffect(() => {
+    console.log('[DEBUG] ProdutoPage: useEffect disparado', { slug, produtoSlug, loja, propLojaId });
     // Em domínio customizado, não exija slug, só produtoSlug e lojaId
     const idLoja = propLojaId || (loja && loja.id);
     if ((!produtoSlug) || (!loja && !idLoja)) {
@@ -284,57 +286,31 @@ const ProdutoPage = (props) => {
     !window.location.host.includes('localhost') &&
     !window.location.host.includes('onrender.com');
 
-  // Se domínio customizado e dados ainda não chegaram, mostra loading e não executa mais nada
   if (isCustomDomain && (!props.lojaId || !props.lojaData)) {
+    console.log('[DEBUG] ProdutoPage: domínio customizado, aguardando lojaId/lojaData', props);
     return (
-      <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'70vh'}}>
-        <div className="spinner" style={{width:60,height:60,border:'6px solid #eee',borderTop:'6px solid #1976d2',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
-        <style>{`@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`}</style>
-      </div>
+      <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados do pacote...</h2></div>
     );
   }
 
   if (loading) {
+    console.log('[DEBUG] ProdutoPage: loading...');
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress size={50} />
-      </Box>
+      <div style={{textAlign:'center',marginTop:80}}><h2>Carregando pacote...</h2></div>
     );
   }
 
   if (error) {
+    console.error('[DEBUG] ProdutoPage: erro detectado', error);
     return (
-      <>
-        <NavBar
-          nomeLoja={loja?.nome || "Erro"}
-          logoUrlState={loja?.logoUrl || ""}
-          exibirLogo={loja?.exibirLogo !== false}
-          onCartClick={() => loja?.id ? navigate(`/carrinho/${loja.id}`) : null}
-        />
-        <Container sx={{ textAlign: 'center', mt: 2, p: 2 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate(slug ? `/${slug}` : '/')}>
-            Voltar
-          </Button>
-        </Container>
-        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
-      </>
+      <div style={{textAlign:'center',marginTop:80,color:'red'}}><h2>Erro ao carregar pacote: {error}</h2></div>
     );
   }
 
   if (!produto || !loja) {
-    // DEBUG: Mostra o produto recebido se não renderizar
+    console.log('[DEBUG] ProdutoPage: produto ou loja ausente', { produto, loja });
     return (
-      <>
-        <Container sx={{ textAlign: 'center', mt: 10, p: 2 }}>
-          <Typography variant="h6">Pacote não encontrado</Typography>
-          <pre style={{textAlign:'left',background:'#eee',padding:8,borderRadius:8,overflowX:'auto',fontSize:12}}>
-            {produto ? JSON.stringify(produto, null, 2) : 'Nenhum produto carregado.'}
-          </pre>
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}>Voltar para Home</Button>
-        </Container>
-        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
-      </>
+      <div style={{textAlign:'center',marginTop:80}}><h2>Pacote não encontrado.</h2></div>
     );
   }
 
@@ -342,6 +318,7 @@ const ProdutoPage = (props) => {
   // (mantém toda a lógica e estrutura atual)
   return (
     <>
+      {console.log('[DEBUG] ProdutoPage: Renderizando produto', produto)}
       <Container maxWidth="lg" className="produto-page-container">
         {/* <Box sx={{ background: '#f8f9fa', borderRadius: 2, p: 2, mb: 3 }}>
           <Typography variant="subtitle2" sx={{ mb: 1, color: '#888' }}>Conteúdo bruto do Firestore:</Typography>

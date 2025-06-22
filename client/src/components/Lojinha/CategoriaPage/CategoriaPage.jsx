@@ -14,6 +14,7 @@ const SkeletonCard = () => (
 );
 
 const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
+  console.log('[DEBUG] CategoriaPage: props recebidas', { propLojaId, lojaData });
   const { slug, categoria } = useParams();
   const [lojaId, setLojaId] = useState(propLojaId || null);
   const [produtos, setProdutos] = useState([]);
@@ -36,7 +37,6 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
     async function ensureLojaIdAndFetchProdutos() {
       setLoading(true);
       let finalLojaId = propLojaId;
-      // Detecta domínio customizado
       const isCustomDomain =
         typeof window !== 'undefined' &&
         !window.location.host.endsWith('vercel.app') &&
@@ -44,17 +44,19 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
         !window.location.host.includes('onrender.com');
       try {
         if (isCustomDomain) {
-          // No domínio personalizado, use apenas o lojaId das props
           if (!finalLojaId && lojaData && lojaData.id) {
             finalLojaId = lojaData.id;
           }
         } else {
-          // No domínio padrão, busca pelo slug se necessário
           if (!finalLojaId && slug) {
+            console.log('[DEBUG] CategoriaPage: Buscando lojaId pelo slug', slug);
             const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
             const lojaSnap = await getDocs(lojaQuery);
             if (!lojaSnap.empty) {
               finalLojaId = lojaSnap.docs[0].id;
+              console.log('[DEBUG] CategoriaPage: lojaId encontrado', finalLojaId);
+            } else {
+              console.log('[DEBUG] CategoriaPage: Nenhuma loja encontrada para slug', slug);
             }
           }
         }
@@ -62,10 +64,10 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
           setLoading(false);
           setProdutos([]);
           setCategorias([]);
+          console.log('[DEBUG] CategoriaPage: lojaId não encontrado, abortando fetch');
           return;
         }
         setLojaId(finalLojaId);
-        // Busca todos os produtos ativos
         const produtosRef = collection(db, `lojas/${finalLojaId}/produtos`);
         const produtosQuery = query(produtosRef, where("ativo", "==", true));
         const produtosSnap = await getDocs(produtosQuery);
@@ -78,22 +80,21 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
             anchorPrice: data.anchorPrice ? parseFloat(data.anchorPrice) : null
           };
         });
-        // Extrai categorias únicas dos produtos ativos
+        console.log('[DEBUG] CategoriaPage: Produtos recebidos', produtosData);
         const categoriasUnicas = Array.from(new Set(produtosData.map(p => (p.category || "").trim()).filter(Boolean)));
         setCategorias(categoriasUnicas);
-        // Filtra pela categoria da URL (case insensitive)
         const produtosFiltrados = produtosData.filter(p => (p.category || "").toLowerCase() === (categoria || "").toLowerCase());
-        // Ordenação
         const produtosOrdenados = produtosFiltrados.sort((a, b) => {
           if (a.prioridade && !b.prioridade) return -1;
           if (!a.prioridade && b.prioridade) return 1;
           return 0;
         });
         setProdutos(produtosOrdenados);
+        console.log('[DEBUG] CategoriaPage: Produtos filtrados para categoria', categoria, produtosOrdenados);
       } catch (error) {
         setProdutos([]);
         setCategorias([]);
-        console.error("Erro completo:", error);
+        console.error('[DEBUG] CategoriaPage: Erro ao buscar produtos/categorias', error);
       } finally {
         setLoading(false);
       }
@@ -145,11 +146,13 @@ const CategoriaPage = ({ lojaId: propLojaId, lojaData }) => {
   };
 
   if (!lojaId || !lojaData) {
+    console.log('[DEBUG] CategoriaPage: lojaId ou lojaData ausente, aguardando...');
     return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
   }
 
   return (
     <div className="categoria-page-container">
+      {console.log('[DEBUG] CategoriaPage: Renderizando produtos', produtos)}
       <h1 className="categoria-titulo">Categoria: {categoria}</h1>
       {/* Lista de categorias disponíveis */}
       {categorias.length > 0 && (

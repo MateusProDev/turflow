@@ -34,6 +34,7 @@ const Lojinha = ({
   logoUrl,
   menuItems = [],
 }) => {
+  console.log('[DEBUG] Lojinha: props recebidas', { lojaId, lojaData, logoUrl, menuItems });
   const [cart, setCart] = useState(() => {
     // Tenta carregar o carrinho do localStorage ao iniciar (Corrigido para usar lojaId)
     const saved = localStorage.getItem(`lojinha_cart_${lojaId}`);
@@ -62,7 +63,7 @@ const Lojinha = ({
   // Sincroniza todos os estados principais ao receber lojaData (domínio customizado)
   useEffect(() => {
     if (lojaData) {
-      console.log("[DEBUG] Lojinha: Sincronizando dados da loja recebidos via props:", lojaData);
+      console.log('[DEBUG] Lojinha: lojaData recebido via props', lojaData);
       setStoreData(lojaData);
       setNomeLoja(lojaData.nome || "Minha Loja");
       setLogoUrlState(lojaData.logoUrl || "");
@@ -82,16 +83,15 @@ const Lojinha = ({
 
   // Efeito para buscar dados iniciais da loja (apenas se NÃO veio lojaData)
   useEffect(() => {
-    if (lojaData) return; // Nunca sobrescreva se já veio lojaData
-
+    if (lojaData) return;
     if (!lojaId) {
-      setError("ID da loja não fornecido.");
-      setLoading(false);
+      console.log('[DEBUG] Lojinha: lojaId ausente, não buscará dados');
       return;
     }
     setLoading(true);
     setError(null);
     async function fetchStoreData() {
+      console.log('[DEBUG] Lojinha: Buscando dados da loja pelo lojaId', lojaId);
       try {
         const lojaRef = doc(db, "lojas", lojaId);
         const lojaSnap = await getDoc(lojaRef);
@@ -125,13 +125,14 @@ const Lojinha = ({
   // Efeito para ouvir produtos em tempo real E extrair categorias dinamicamente
   useEffect(() => {
     if (!lojaId) {
-      console.warn("[DEBUG] Lojinha: lojaId não definido, não irá buscar produtos.");
+      console.log('[DEBUG] Lojinha: lojaId ausente, não buscará produtos');
       return;
     }
-    console.log("[DEBUG] Lojinha: Buscando produtos para lojaId =", lojaId);
+    console.log('[DEBUG] Lojinha: Buscando produtos para lojaId =', lojaId);
 
     const q = query(collection(db, `lojas/${lojaId}/produtos`));
     const unsubscribe = onSnapshot(q, (snapshot) => {
+      console.log('[DEBUG] Lojinha: Produtos recebidos do Firestore', snapshot.docs.map(d => d.data()));
       const produtos = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
 
       // Log para depuração
@@ -158,7 +159,7 @@ const Lojinha = ({
       const categoriasDinamicas = Array.from(new Set(produtosAtivos.map(p => p.category || "Outros")));
       setCategorias(categoriasDinamicas);
     }, (error) => {
-      console.error("Erro ao buscar produtos em tempo real:", error);
+      console.error('[DEBUG] Lojinha: Erro ao buscar produtos', error);
     });
 
     return () => unsubscribe();
@@ -375,15 +376,18 @@ const Lojinha = ({
 
   // Exibe loading ou erro se necessário
   if (loading) {
+    console.log('[DEBUG] Lojinha: loading...');
     return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}><CircularProgress /></Box>;
   }
   if (error) {
+    console.error('[DEBUG] Lojinha: erro detectado', error);
     return <Box sx={{ textAlign: 'center', mt: 5 }}><Typography color="error">{error}</Typography></Box>;
   }
 
 
   return (
     <div className="lojinha-container">
+      {console.log('[DEBUG] Lojinha: Renderizando, categorias:', categorias, 'produtosPorCategoria:', produtosPorCategoria)}
       <NavBar
         logoUrl={logoUrlState}
         nomeLoja={nomeLoja}

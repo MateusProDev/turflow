@@ -12,6 +12,7 @@ const SkeletonCard = () => (
 );
 
 const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) => {
+  console.log('[DEBUG] ProductSection: props recebidas', { title, products, categoriaId, loading });
   const navigate = useNavigate();
   const { slug } = useParams();
   const carouselRef = useRef(null);
@@ -67,6 +68,7 @@ const ProductSection = ({ title, products, onAddToCart, categoriaId, loading }) 
 
   return (
     <section className="lojinha-product-section">
+      {console.log('[DEBUG] ProductSection: Renderizando produtos', products)}
       <div className="lojinha-product-section-header">
         <h2>{title}</h2>
         {products && products.length > 5 && (
