@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../../../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
-import { useLojaContext } from "../../hooks/useLojaContext";
+import { useLojaContext } from "../../../hooks/useLojaContext";
 import {
   Box,
   Container,

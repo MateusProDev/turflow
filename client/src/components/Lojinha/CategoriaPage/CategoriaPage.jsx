@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../../../firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
-import { useLojaContext } from "../../hooks/useLojaContext";
+import { useLojaContext } from "../../../hooks/useLojaContext";
 import "./CategoriaPage.css";
 
 const SkeletonCard = () => (

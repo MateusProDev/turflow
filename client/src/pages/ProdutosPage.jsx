@@ -5,6 +5,7 @@ import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import ProductSection from "../components/Lojinha/ProductSection/ProductSection";
 import { useAuth } from "../utils/useAuth"; // Importação
 
+
 const ProdutosPage = ({ lojaId }) => {
   const { user, loading } = useAuth(); // Uso do hook
   const [categorias, setCategorias] = useState([]);
