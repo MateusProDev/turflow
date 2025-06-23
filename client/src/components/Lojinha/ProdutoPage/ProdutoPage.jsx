@@ -34,7 +34,8 @@ import Footer from "../Footer/Footer";
 import "./ProdutoPage.css";
 
 const ProdutoPage = (props) => {
-  const { produtoSlug } = useParams();
+  const { produtoSlug, slug } = useParams();
+  const isPacoteRoute = window.location.pathname.includes('/pacote/') || window.location.pathname.includes('/pacote:');
   const navigate = useNavigate();
   const { lojaId, lojaData, loading: lojaLoading } = useLojaContext(props.lojaId, props.lojaData);
   const [produto, setProduto] = useState(null);
@@ -123,7 +124,7 @@ const ProdutoPage = (props) => {
   };
 
   const handleReserveNow = () => {
-    if (!produto || !loja) {
+    if (!produto || !lojaData) {
       showSnackbar("Erro ao processar reserva. Tente novamente.");
       return;
     }
@@ -151,7 +152,7 @@ const ProdutoPage = (props) => {
     }
     
     // Redireciona para a página de reserva com os dados do produto
-    navigate(`/${slug}/reserva/${produto.id}`, {
+    navigate(`${slug ? `/${slug}` : ''}/reserva/${produto.id}`, {
       state: {
         produto: {
           ...produto,
@@ -159,7 +160,7 @@ const ProdutoPage = (props) => {
           mainImageUrl: imagesArray[selectedImage] || placeholderLarge,
           currentPrice: getCurrentPricePerUnit()
         },
-        loja
+        loja: lojaData
       }
     });
   };
@@ -168,7 +169,7 @@ const ProdutoPage = (props) => {
     try {
       const shareData = {
         title: produto?.name || "Confira este produto!",
-        text: `Olha este produto que encontrei na loja ${loja?.nome || ''}: ${produto?.name || ''}`,
+        text: `Olha este produto que encontrei na loja ${lojaData?.nome || ''}: ${produto?.name || ''}`,
         url: window.location.href,
       };
       if (navigator.share) {
