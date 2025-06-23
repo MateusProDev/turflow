@@ -29,6 +29,7 @@ import { verificarPlanoUsuario } from './utils/verificarPlanoUsuario';
 // Context
 import { CategoriasProvider } from "./context/CategoriasContext";
 import { UserPlanProvider } from "./context/UserPlanContext"; // Import the UserPlanProvider
+import { useLojaContext } from "./hooks/useLojaContext";
 
 // Componente de rota protegida
 const ProtectedRoute = ({ user, children }) => {
@@ -41,75 +42,28 @@ const StoreRequiredRoute = ({ user, hasStore, children }) => {
   return hasStore ? children : <Navigate to="/criar-loja" replace />;
 };
 
-function LojinhaPage() {
-  const { slug } = useParams();
-  const [lojaId, setLojaId] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    if (!slug) return;
-    async function fetchLojaId() {
-      const q = query(collection(db, "lojas"), where("slug", "==", slug));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        setLojaId(snap.docs[0].id);
-      }
-      setLoading(false);
-    }
-    fetchLojaId();
-  }, [slug]);
-
-  if (loading) return <div>Carregando loja...</div>;
-  if (!lojaId) return <div>Loja não encontrada.</div>;
-  return <Lojinha lojaId={lojaId} />;
-}
-
-// Wrapper para garantir lojaId em CategoriaPage
+// Wrapper para garantir lojaId e lojaData em CategoriaPage
 function CategoriaPageWrapper() {
-  const { slug, categoria } = useParams();
-  const [lojaId, setLojaId] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    if (!slug) return;
-    async function fetchLojaId() {
-      const q = query(collection(db, "lojas"), where("slug", "==", slug));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        setLojaId(snap.docs[0].id);
-      }
-      setLoading(false);
-    }
-    fetchLojaId();
-  }, [slug]);
-
+  const { lojaId, lojaData, loading } = useLojaContext();
   if (loading) return <div>Carregando categoria...</div>;
   if (!lojaId) return <div>Loja não encontrada.</div>;
-  return <CategoriaPage lojaId={lojaId} />;
+  return <CategoriaPage lojaId={lojaId} lojaData={lojaData} />;
 }
 
-// Wrapper para garantir lojaId em ProdutoPage
+// Wrapper para garantir lojaId e lojaData em ProdutoPage
 function ProdutoPageWrapper() {
-  const { slug, produtoSlug } = useParams();
-  const [lojaId, setLojaId] = React.useState(null);
-  const [loading, setLoading] = React.useState(true);
-
-  React.useEffect(() => {
-    if (!slug) return;
-    async function fetchLojaId() {
-      const q = query(collection(db, "lojas"), where("slug", "==", slug));
-      const snap = await getDocs(q);
-      if (!snap.empty) {
-        setLojaId(snap.docs[0].id);
-      }
-      setLoading(false);
-    }
-    fetchLojaId();
-  }, [slug]);
-
+  const { lojaId, lojaData, loading } = useLojaContext();
   if (loading) return <div>Carregando pacote...</div>;
   if (!lojaId) return <div>Loja não encontrada.</div>;
-  return <ProdutoPage lojaId={lojaId} />;
+  return <ProdutoPage lojaId={lojaId} lojaData={lojaData} />;
+}
+
+// Wrapper para garantir lojaId e lojaData em Lojinha
+function LojinhaPage() {
+  const { lojaId, lojaData, loading } = useLojaContext();
+  if (loading) return <div>Carregando loja...</div>;
+  if (!lojaId) return <div>Loja não encontrada.</div>;
+  return <Lojinha lojaId={lojaId} lojaData={lojaData} />;
 }
 
 const AppContent = () => {
@@ -229,16 +183,13 @@ const AppContent = () => {
     return <CustomDomainRouter lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />;
   }
 
+  // Rotas harmonizadas para ambos os domínios
   return (
     <UserPlanProvider>
       <Routes location={location}>
-        {/* Rota especial: se domínio customizado e loja encontrada, renderiza a loja na raiz */}
-        {customDomainLoja && (
-          <Route path="/" element={<Lojinha lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />} />
-        )}
-
-        {/* Rotas públicas */}
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<LojinhaPage />} />
+        <Route path="/categoria/:categoria" element={<CategoriaPageWrapper />} />
+        <Route path="/pacote/:produtoSlug" element={<ProdutoPageWrapper />} />
 
         {/* Rotas de autenticação */}
         <Route

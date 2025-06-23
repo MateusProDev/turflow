@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../../../firebaseConfig";
-import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
+import { doc, getDoc } from "firebase/firestore";
+import { useLojaContext } from "../../hooks/useLojaContext";
 import {
   Box,
   Container,
@@ -33,15 +34,10 @@ import Footer from "../Footer/Footer";
 import "./ProdutoPage.css";
 
 const ProdutoPage = (props) => {
-  const params = useParams();
-  const produtoSlug = params.produtoSlug || params.pacoteSlug;
-  const slug = params.slug; // Corrige: pega o slug da loja se existir
-  const { lojaId: propLojaId, lojaData } = props;
+  const { produtoSlug } = useParams();
   const navigate = useNavigate();
-  // Detecta se está na rota /pacote/:produtoSlug
-  const isPacoteRoute = typeof window !== 'undefined' && window.location.pathname.startsWith('/pacote/');
+  const { lojaId, lojaData, loading: lojaLoading } = useLojaContext(props.lojaId, props.lojaData);
   const [produto, setProduto] = useState(null);
-  const [loja, setLoja] = useState(lojaData || null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
@@ -68,85 +64,27 @@ const ProdutoPage = (props) => {
     return `R$ ${Number(value).toFixed(2).replace('.', ',')}`;
   };
 
-  const fetchProdutoData = async () => {
+  useEffect(() => {
+    if (!lojaId || !produtoSlug) return;
     setLoading(true);
     setError(null);
-    try {
-      let finalLojaId = propLojaId;
-      let lojaDataObj = lojaData;
-      if (!finalLojaId) {
-        // Detecta domínio customizado
-        const isCustomDomain =
-          typeof window !== 'undefined' &&
-          !window.location.host.endsWith('vercel.app') &&
-          !window.location.host.includes('localhost') &&
-          !window.location.host.includes('onrender.com');
-        if (isCustomDomain && lojaData && lojaData.id) {
-          finalLojaId = lojaData.id;
-          lojaDataObj = lojaData;
-        } else if (!isCustomDomain) {
-          // Busca a loja pelo slug
-          const lojaQuery = query(collection(db, "lojas"), where("slug", "==", slug));
-          const lojaSnap = await getDocs(lojaQuery);
-          if (!lojaSnap.empty) {
-            finalLojaId = lojaSnap.docs[0].id;
-            lojaDataObj = { id: lojaSnap.docs[0].id, ...lojaSnap.docs[0].data() };
-          }
-        }
-      }
-      if (!finalLojaId) {
-        setLoading(false);
-        return;
-      }
-      setLoja(lojaDataObj);
-
-      // Busca dados do produto/pacote SEMPRE na coleção produtos
-      let produtoData = null;
-      const produtoQuery = query(
-        collection(db, `lojas/${finalLojaId}/produtos`),
-        where("slug", "==", produtoSlug)
-      );
-      const produtosSnap = await getDocs(produtoQuery);
-      if (!produtosSnap.empty) {
-        produtoData = { id: produtosSnap.docs[0].id, ...produtosSnap.docs[0].data() };
-      } else {
-        const produtoDocRef = doc(db, `lojas/${finalLojaId}/produtos`, produtoSlug);
-        const produtoDocSnap = await getDoc(produtoDocRef);
-        if (produtoDocSnap.exists()) {
-          produtoData = { id: produtoDocSnap.id, ...produtoDocSnap.data() };
+    async function fetchProduto() {
+      try {
+        const produtoRef = doc(db, `lojas/${lojaId}/produtos/${produtoSlug}`);
+        const produtoSnap = await getDoc(produtoRef);
+        if (produtoSnap.exists()) {
+          setProduto({ id: produtoSnap.id, ...produtoSnap.data() });
         } else {
-          throw new Error(`Pacote/Produto não encontrado na loja "${lojaDataObj?.nome || ''}".`);
+          setError("Pacote não encontrado.");
         }
+      } catch (err) {
+        setError("Erro ao buscar pacote.");
+      } finally {
+        setLoading(false);
       }
-
-      // Garante que images seja um array
-      if (produtoData && !Array.isArray(produtoData.images)) {
-        produtoData.images = [];
-      }
-
-      // Validação de dados básicos
-      if (!produtoData.name || !produtoData.price) {
-        console.warn("Produto com dados incompletos:", produtoData);
-      }
-      setProduto(produtoData);
-    } catch (err) {
-      console.error("Erro ao buscar dados:", err);
-      setError(err.message || "Erro ao carregar dados do produto.");
-    } finally {
-      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    // Em domínio customizado, não exija slug, só produtoSlug e lojaId
-    const idLoja = propLojaId || (loja && loja.id);
-    if ((!produtoSlug) || (!loja && !idLoja)) {
-      setError("Dados insuficientes para buscar o pacote/produto.");
-      setLoading(false);
-      return;
-    }
-    fetchProdutoData();
-  }, [slug, produtoSlug, loja, propLojaId]);
+    fetchProduto();
+  }, [lojaId, produtoSlug]);
 
   useEffect(() => {
     if (produto) {
@@ -277,49 +215,9 @@ const ProdutoPage = (props) => {
   const mainImageUrl = imagesArray[safeSelectedImage] || placeholderLarge;
   const currentPrice = getCurrentPricePerUnit();
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress size={50} />
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <NavBar
-          nomeLoja={loja?.nome || "Erro"}
-          logoUrlState={loja?.logoUrl || ""}
-          exibirLogo={loja?.exibirLogo !== false}
-          onCartClick={() => loja?.id ? navigate(`/carrinho/${loja.id}`) : null}
-        />
-        <Container sx={{ textAlign: 'center', mt: 2, p: 2 }}>
-          <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate(slug ? `/${slug}` : '/')}>
-            Voltar
-          </Button>
-        </Container>
-        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
-      </>
-    );
-  }
-
-  if (!produto || !loja) {
-    // DEBUG: Mostra o produto recebido se não renderizar
-    return (
-      <>
-        <Container sx={{ textAlign: 'center', mt: 10, p: 2 }}>
-          <Typography variant="h6">Pacote não encontrado</Typography>
-          <pre style={{textAlign:'left',background:'#eee',padding:8,borderRadius:8,overflowX:'auto',fontSize:12}}>
-            {produto ? JSON.stringify(produto, null, 2) : 'Nenhum produto carregado.'}
-          </pre>
-          <Button variant="outlined" startIcon={<ArrowBackIcon />} onClick={() => navigate('/')}>Voltar para Home</Button>
-        </Container>
-        <Footer nomeLoja={loja?.nome || ""} footerData={loja?.footer || {}} />
-      </>
-    );
-  }
+  if (lojaLoading || loading) return <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'70vh'}}><div className="spinner" style={{width:60,height:60,border:'6px solid #eee',borderTop:'6px solid #1976d2',borderRadius:'50%',animation:'spin 1s linear infinite'}} /><style>{`@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`}</style></div>;
+  if (error) return <div style={{textAlign:'center',marginTop:80,color:'red'}}><h2>{error}</h2></div>;
+  if (!produto || !lojaId || !lojaData) return <div style={{textAlign:'center',marginTop:80}}><h2>Pacote ou loja não encontrado.</h2></div>;
 
   // Mostra os dados crus do Firestore acima do layout detalhado
   // (mantém toda a lógica e estrutura atual)
