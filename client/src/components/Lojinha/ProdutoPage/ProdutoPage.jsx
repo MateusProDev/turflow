@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { db } from "../../../firebaseConfig";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 import { useLojaContext } from "../../../hooks/useLojaContext";
 import {
   Box,
@@ -70,10 +70,11 @@ const ProdutoPage = (props) => {
     setError(null);
     async function fetchProduto() {
       try {
-        const produtoRef = doc(db, `lojas/${lojaId}/produtos/${produtoSlug}`);
-        const produtoSnap = await getDoc(produtoRef);
-        if (produtoSnap.exists()) {
-          setProduto({ id: produtoSnap.id, ...produtoSnap.data() });
+        const produtosRef = collection(db, `lojas/${lojaId}/produtos`);
+        const q = query(produtosRef, where("slug", "==", produtoSlug));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          setProduto({ id: snap.docs[0].id, ...snap.docs[0].data() });
         } else {
           setError("Pacote não encontrado.");
         }
@@ -234,7 +235,7 @@ const ProdutoPage = (props) => {
           onClick={() => navigate('/')} // Volta para home
           sx={{ mb: 3, textTransform: 'none' }}
         >
-          Voltar para {loja.nome}
+          Voltar para {lojaData.nome}
         </Button>
         <Paper elevation={0} sx={{ p: { xs: 2, sm: 3, md: 4 }, borderRadius: '16px' }}>
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: { xs: 3, md: 5 } }}>
@@ -488,7 +489,7 @@ const ProdutoPage = (props) => {
           </Box>
         </Paper>
       </Container>
-      <Footer nomeLoja={loja.nome} footerData={loja.footer || {}} />
+      <Footer nomeLoja={lojaData.nome} footerData={lojaData.footer || {}} />
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}
