@@ -9,6 +9,30 @@
       "destination": "https://storesync.onrender.com/api/:path*"
     },
     {
+      "source": "/static/:path*",
+      "destination": "/static/:path*"
+    },
+    {
+      "source": "/favicon.ico",
+      "destination": "/favicon.ico"
+    },
+    {
+      "source": "/manifest.json",
+      "destination": "/manifest.json"
+    },
+    {
+      "source": "/logo192.png",
+      "destination": "/logo192.png"
+    },
+    {
+      "source": "/logo512.png",
+      "destination": "/logo512.png"
+    },
+    {
+      "source": "/robots.txt",
+      "destination": "/robots.txt"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }

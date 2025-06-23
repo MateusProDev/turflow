@@ -61,3 +61,4 @@ server/coverage/
 firebase-debug.log
 firebase-emulator-suite.log
 .firebase/
+.vercel

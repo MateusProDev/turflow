@@ -28,6 +28,12 @@ const CategoriaPage = (props) => {
   const scrollLeft = useRef(0);
 
   useEffect(() => {
+    if (!lojaId || !lojaData) {
+      navigate("/", { replace: true });
+    }
+  }, [lojaId, lojaData, navigate]);
+
+  useEffect(() => {
     if (!lojaId) return;
     async function fetchProdutos() {
       setLoading(true);
