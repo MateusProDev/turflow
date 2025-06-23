@@ -112,35 +112,6 @@ function ProdutoPageWrapper() {
   return <ProdutoPage lojaId={lojaId} />;
 }
 
-// Novo componente para rotas públicas no domínio customizado
-function CustomDomainRouter({ lojaId, lojaData }) {
-  return (
-    <Routes>
-      <Route path="/" element={
-        <Lojinha
-          lojaId={lojaId}
-          lojaData={lojaData}
-          logoUrl={lojaData.logoUrl}
-        />
-      } />
-      <Route path="/categoria/:categoria" element={
-        <CategoriaPage
-          lojaId={lojaId}
-          lojaData={lojaData}
-        />
-      } />
-      <Route path="/pacote/:produtoSlug" element={
-        <ProdutoPage
-          lojaId={lojaId}
-          lojaData={lojaData}
-        />
-      } />
-      {/* Outras rotas públicas se necessário */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
-  );
-}
-
 const AppContent = () => {
   const [user, setUser] = useState(null);
   const [hasStore, setHasStore] = useState(false);
