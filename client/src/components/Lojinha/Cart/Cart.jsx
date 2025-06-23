@@ -17,7 +17,7 @@ const Cart = ({
   onIncrement,
   onDecrement,
   open,
-  onClose,
+  onClose, 
   whatsappNumber,
   onCheckoutTransparent,
   enableWhatsappCheckout,
