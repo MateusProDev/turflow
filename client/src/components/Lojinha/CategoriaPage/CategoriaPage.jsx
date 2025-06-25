@@ -4,7 +4,7 @@ import { db } from "../../../firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useLojaContext } from "../../../hooks/useLojaContext";
 import "./CategoriaPage.css";
-import Spinner from "../Spinner";
+import Spinner from "../../Spinner";
 
 const SkeletonCard = () => (
   <div className="categoria-produto-card skeleton">
