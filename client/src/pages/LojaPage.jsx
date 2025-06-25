@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { db } from '../firebase';  // Aponte para o arquivo de configuração do Firebase
 import { doc, getDoc } from 'firebase/firestore';
+import Spinner from '../components/Spinner';
 
 const LojaPage = () => {
   const { slug } = useParams(); // Obtém o slug da URL
@@ -20,7 +21,7 @@ const LojaPage = () => {
   }, [slug]); // Atualiza quando o `slug` mudar
 
   if (!loja) {
-    return <div>Carregando...</div>; // Exibe um carregamento até os dados serem obtidos
+    return <Spinner />; // Exibe um carregamento até os dados serem obtidos
   }
 
   return (

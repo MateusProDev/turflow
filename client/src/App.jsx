@@ -5,7 +5,7 @@ import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 import { useState, useEffect } from "react";
 import { db } from './firebaseConfig';
-import { Spinner } from 'react-bootstrap';
+import Spinner from "./components/Spinner";
 import '@fortawesome/fontawesome-free/css/all.min.css'; 
 import { useRef } from "react";
 
@@ -45,12 +45,7 @@ const StoreRequiredRoute = ({ user, hasStore, children }) => {
 // Wrapper para garantir lojaId e lojaData em CategoriaPage
 function CategoriaPageWrapper() {
   const { lojaId, lojaData, loading } = useLojaContext();
-  if (loading) return (
-    <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'70vh'}}>
-      <div className="spinner" style={{width:60,height:60,border:'6px solid #eee',borderTop:'6px solid #1976d2',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
-      <style>{`@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`}</style>
-    </div>
-  );
+  if (loading) return <Spinner />;
   if (!lojaId) return <div>Loja não encontrada.</div>;
   return <CategoriaPage lojaId={lojaId} lojaData={lojaData} />;
 }
@@ -58,12 +53,7 @@ function CategoriaPageWrapper() {
 // Wrapper para garantir lojaId e lojaData em ProdutoPage
 function ProdutoPageWrapper() {
   const { lojaId, lojaData, loading } = useLojaContext();
-  if (loading) return (
-    <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'70vh'}}>
-      <div className="spinner" style={{width:60,height:60,border:'6px solid #eee',borderTop:'6px solid #1976d2',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
-      <style>{`@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`}</style>
-    </div>
-  );
+  if (loading) return <Spinner />;
   if (!lojaId) return <div>Loja não encontrada.</div>;
   return <ProdutoPage lojaId={lojaId} lojaData={lojaData} />;
 }
@@ -154,24 +144,13 @@ const AppContent = () => {
   // Mostra um spinner enquanto verifica o status de autenticação
   if (loading) {
     console.log("[DEBUG] AppContent: loading...");
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <Spinner animation="border" variant="primary" role="status">
-        </Spinner>
-      </div>
-    );
+    return <Spinner />;
   }
 
   // Mostra mensagem amigável se domínio customizado não encontrado
   if (!customDomainChecked) {
     console.log("[DEBUG] AppContent: customDomainChecked = false, aguardando verificação...");
-    return (
-      <div className="d-flex justify-content-center align-items-center vh-100">
-        <Spinner animation="border" variant="primary" role="status">
-          <span className="visually-hidden">Carregando...</span>
-        </Spinner>
-      </div>
-    );
+    return <Spinner />;
   }
   const host = typeof window !== "undefined" ? window.location.host : "";
   const isCustomDomain =
@@ -182,12 +161,7 @@ const AppContent = () => {
   // Renderização das rotas customizadas
   if (isCustomDomain) {
     if (!customDomainChecked || !customDomainLoja) {
-      return (
-        <div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'70vh'}}>
-          <div className="spinner" style={{width:60,height:60,border:'6px solid #eee',borderTop:'6px solid #1976d2',borderRadius:'50%',animation:'spin 1s linear infinite'}} />
-          <style>{`@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`}</style>
-        </div>
-      );
+      return <Spinner />;
     }
     return <CustomDomainRouter lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />;
   }

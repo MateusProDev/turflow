@@ -4,6 +4,7 @@ import { db } from "../../../firebaseConfig";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useLojaContext } from "../../../hooks/useLojaContext";
 import "./CategoriaPage.css";
+import Spinner from "../Spinner";
 
 const SkeletonCard = () => (
   <div className="categoria-produto-card skeleton">
@@ -58,7 +59,7 @@ const CategoriaPage = (props) => {
     fetchProdutos();
   }, [lojaId, categoria]);
 
-  if (lojaLoading || loading) return <div style={{textAlign:'center',marginTop:80}}><h2>Carregando dados da loja...</h2></div>;
+  if (lojaLoading || loading) return <Spinner />;
   if (!lojaId || !lojaData) return <div style={{textAlign:'center',marginTop:80}}><h2>Loja não encontrada.</h2></div>;
 
   return (
