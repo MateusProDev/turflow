@@ -23,6 +23,11 @@ import { verificarPlanoUsuario } from './utils/verificarPlanoUsuario';
 import { CategoriasProvider } from "./context/CategoriasContext";
 import { UserPlanProvider } from "./context/UserPlanContext";
 import { useLojaContext } from "./hooks/useLojaContext";
+import UserArea from './components/UserArea';
+import AdminDashboard from './components/AdminDashboard';
+import UserReservations from './components/UserReservations';
+import AdminReservations from './components/AdminReservations';
+import AdminChat from './components/AdminChat';
 
 const CustomDomainRouter = lazy(() => import("./CustomDomainRouter/CustomDomainRouter"));
 
@@ -195,6 +200,11 @@ const AppContent = () => {
   return (
     <UserPlanProvider>
       <Routes location={location}>
+        <Route path="/usuario" element={<UserArea user={user} />} />
+        <Route path="/minhas-reservas" element={<UserReservations reservas={[]} />} />
+        <Route path="/dashboard-admin" element={<AdminDashboard loja={customDomainLoja?.loja || {}} reservas={[]} />} />
+        <Route path="/admin-reservas" element={<AdminReservations reservas={[]} onStatusChange={() => {}} />} />
+        <Route path="/admin-chat" element={<AdminChat messages={[]} onSend={() => {}} user={user} cliente={{}} />} />
         <Route path="/" element={<HomePage />} />
         <Route path="/categoria/:categoria" element={<CategoriaPageWrapper />} />
         <Route path="/pacote/:produtoSlug" element={<ProdutoPageWrapper />} />

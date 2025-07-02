@@ -11,6 +11,7 @@ import "./Lojinha.css";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from 'axios'; // <-- ADICIONADO
 import { CircularProgress, Box, Typography, Button } from '@mui/material'; // <-- ADICIONADO
+import { Home, Category, ShoppingBag, Person, ExitToApp, Dashboard, Chat, ListAlt } from '@mui/icons-material';
 
 // <-- ADICIONADO: URL DO SEU BACKEND (MUITO IMPORTANTE!)
 const API_BASE_URL = 'https://storesync.onrender.com'; // **ATENÇÃO: Use a URL correta do seu backend na Render!**
@@ -405,6 +406,23 @@ const Lojinha = ({
             open={sideMenuOpen}
             menuItems={menuItems}
             onClose={handleSideMenuClose}
+            onSelect={item => {
+              setSideMenuOpen(false);
+              if (item.path === '/logout') {
+                // lógica de logout
+                alert('Logout simulado!');
+              } else if (item.path === '/categoria') {
+                // Redireciona para a primeira categoria, se houver
+                if (categorias.length > 0) {
+                  navigate(`/categoria/${encodeURIComponent(categorias[0].toLowerCase())}`);
+                } else {
+                  navigate('/');
+                }
+              } else {
+                navigate(item.path);
+              }
+            }}
+            user={fakeUser}
           />
         </>
       )}

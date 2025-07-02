@@ -32,6 +32,8 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import NavBar from "../NavBar/NavBar";
 import Footer from "../Footer/Footer";
 import "./ProdutoPage.css";
+import { getAuth } from "firebase/auth";
+import { addDoc, serverTimestamp } from "firebase/firestore";
 
 const ProdutoPage = (props) => {
   const { produtoSlug, slug } = useParams();
@@ -139,42 +141,62 @@ const ProdutoPage = (props) => {
     setSelectedVariants(prev => ({ ...prev, [variantName]: options }));
   };
 
-  const handleReserveNow = () => {
+  const handleReserveNow = async () => {
     if (!produto || !lojaData) {
       showSnackbar("Erro ao processar reserva. Tente novamente.");
       return;
     }
-    // Não exige variantes obrigatórias
-    // Redireciona para a página de reserva com os dados do produto
-    navigate(`${slug ? `/${slug}` : ''}/reserva/${produto.id}`, {
-      state: {
-        produto: {
-          ...produto,
-          selectedVariants,
-          mainImageUrl: imagesArray[selectedImage] || placeholderLarge,
-          currentPrice: getCurrentPricePerUnit()
-        },
-        loja: lojaData
-      }
-    });
+    // Verifica se o usuário está logado
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) {
+      showSnackbar("Faça login para reservar.");
+      navigate('/login');
+      return;
+    }
+    try {
+      // Cria reserva no Firestore
+      const reservaRef = await addDoc(
+        collection(db, "lojas", lojaId, "reservas"),
+        {
+          userId: user.uid,
+          pacoteId: produto.id,
+          nomePacote: produto.name,
+          variantesSelecionadas: selectedVariants,
+          dataReserva: serverTimestamp(),
+          status: "aguardando",
+          lojaId: lojaId,
+          produtoId: produto.id,
+          produtoNome: produto.name,
+          // Adicione outros campos desejados
+        }
+      );
+      showSnackbar("Reserva realizada com sucesso!");
+      // Opcional: redirecionar para área do usuário ou reservas
+      // navigate('/minhas-reservas');
+    } catch (e) {
+      showSnackbar("Erro ao criar reserva. Tente novamente.");
+    }
   };
 
   const handleShare = async () => {
     try {
+      // Link principal da loja
+      const mainUrl = window.location.origin + (slug ? `/${slug}` : '');
       const shareData = {
-        title: produto?.name || "Confira este produto!",
-        text: `Olha este produto que encontrei na loja ${lojaData?.nome || ''}: ${produto?.name || ''}`,
-        url: window.location.href,
+        title: produto?.name || "Confira este pacote!",
+        text: `Veja este pacote na loja ${lojaData?.nome || ''}! Acesse:`,
+        url: mainUrl,
       };
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(window.location.href);
-        showSnackbar('Link copiado para a área de transferência!');
+        await navigator.clipboard.writeText(mainUrl);
+        showSnackbar('Link da loja copiado para a área de transferência!');
       }
     } catch (err) {
       console.error('Erro ao compartilhar:', err);
-      showSnackbar('Não foi possível compartilhar o produto.');
+      showSnackbar('Não foi possível compartilhar o link da loja.');
     }
   };
 
