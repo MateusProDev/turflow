@@ -22,6 +22,7 @@ import CategoriaPage from "./components/Lojinha/CategoriaPage/CategoriaPage";
 import ProdutoPage from "./components/Lojinha/ProdutoPage/ProdutoPage";
 import ProdutosPage from "./pages/ProdutosPage";
 import SkeletonLoja from "./components/SkeletonLoja";
+const CustomDomainRouter = lazy(() => import("./CustomDomainRouter/CustomDomainRouter"));
 
 // Utils
 import { verificarPlanoUsuario } from './utils/verificarPlanoUsuario';
