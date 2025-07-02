@@ -1,5 +1,5 @@
 // App.js
-import React from "react";
+import React, { Suspense, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -21,7 +21,7 @@ import LojinhaPreview from './components/LojinhaPreview/LojinhaPreview';
 import CategoriaPage from "./components/Lojinha/CategoriaPage/CategoriaPage";
 import ProdutoPage from "./components/Lojinha/ProdutoPage/ProdutoPage";
 import ProdutosPage from "./pages/ProdutosPage";
-import CustomDomainRouter from "./CustomDomainRouter/CustomDomainRouter";
+import SkeletonLoja from "./components/SkeletonLoja";
 
 // Utils
 import { verificarPlanoUsuario } from './utils/verificarPlanoUsuario';
@@ -122,6 +122,31 @@ const AppContent = () => {
     console.log("[DEBUG] AppContent: host =", host, "isCustomDomain =", isCustomDomain);
 
     if (isCustomDomain) {
+      // Tenta usar cache local
+      const cached = sessionStorage.getItem("customDomainLoja");
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached);
+          if (parsed && parsed.lojaId && parsed.loja) {
+            setCustomDomainLoja(parsed);
+            setCustomDomainChecked(true);
+            // Faz fetch em background para atualizar cache
+            fetch("/public/loja")
+              .then(async (res) => {
+                if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
+                return res.json();
+              })
+              .then((data) => {
+                if (data && data.lojaId && data.loja) {
+                  sessionStorage.setItem("customDomainLoja", JSON.stringify(data));
+                  setCustomDomainLoja(data);
+                }
+              });
+            return;
+          }
+        } catch {}
+      }
+      // Se não tem cache, faz fetch normalmente
       fetch("/public/loja")
         .then(async (res) => {
           if (!res.ok) throw new Error("Loja não encontrada para este domínio.");
@@ -129,7 +154,8 @@ const AppContent = () => {
         })
         .then((data) => {
           if (data && data.lojaId && data.loja) {
-            setCustomDomainLoja({ lojaId: data.lojaId, loja: data.loja });
+            sessionStorage.setItem("customDomainLoja", JSON.stringify(data));
+            setCustomDomainLoja(data);
           }
           setCustomDomainChecked(true);
         })
@@ -161,9 +187,13 @@ const AppContent = () => {
   // Renderização das rotas customizadas
   if (isCustomDomain) {
     if (!customDomainChecked || !customDomainLoja) {
-      return <Spinner />;
+      return <SkeletonLoja />;
     }
-    return <CustomDomainRouter lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />;
+    return (
+      <Suspense fallback={<SkeletonLoja />}>
+        <CustomDomainRouter lojaId={customDomainLoja.lojaId} lojaData={customDomainLoja.loja} />
+      </Suspense>
+    );
   }
 
   // Rotas harmonizadas para ambos os domínios

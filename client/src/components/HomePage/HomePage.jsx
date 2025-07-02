@@ -327,7 +327,7 @@ const HomePage = () => {
           <div className="homepage-testimonial-card">
             <div className="homepage-testimonial-content">
               <div className="homepage-testimonial-avatar">
-                <img src="/api/placeholder/80/80" alt="Cliente" />
+                <img src="https://placehold.co/80x80" alt="Cliente" />
               </div>
               <p className="homepage-testimonial-text">"Aumentei minhas vendas em 200% no primeiro mês usando a plataforma BenCommerce. O sistema é muito fácil de usar e o suporte é excelente!"</p>
               <div>
