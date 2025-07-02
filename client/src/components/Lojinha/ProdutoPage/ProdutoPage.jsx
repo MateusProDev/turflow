@@ -42,6 +42,7 @@ const ProdutoPage = (props) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  // Substituir o estado selectedVariants para múltiplas opções por variante
   const [selectedVariants, setSelectedVariants] = useState({});
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -88,9 +89,9 @@ const ProdutoPage = (props) => {
     fetchProduto();
   }, [lojaId, produtoSlug]);
 
+  // Atualizar a inicialização das variantes para múltipla seleção
   useEffect(() => {
     if (produto) {
-      // Inicializa variantes selecionadas de forma robusta
       let variantsArray = [];
       // Caso 1: Variantes como array (estrutura correta)
       if (Array.isArray(produto.variants)) {
@@ -110,7 +111,7 @@ const ProdutoPage = (props) => {
       variantsArray.forEach(variant => {
         if (variant && variant.options && variant.options.length > 0) {
           // Seleciona a opção padrão ou a primeira opção disponível
-          initialVariants[variant.name || "Tamanho"] = variant.default || variant.options[0];
+          initialVariants[variant.name || "Tamanho"] = [];
         }
       });
       setSelectedVariants(initialVariants);
@@ -119,8 +120,23 @@ const ProdutoPage = (props) => {
     }
   }, [produto]);
 
+  // Nova função para múltipla seleção
   const handleVariantChange = (variantName, value) => {
-    setSelectedVariants(prev => ({ ...prev, [variantName]: value }));
+    setSelectedVariants(prev => {
+      const current = prev[variantName] || [];
+      if (current.includes(value)) {
+        // Remove se já está selecionado
+        return { ...prev, [variantName]: current.filter(v => v !== value) };
+      } else {
+        // Adiciona
+        return { ...prev, [variantName]: [...current, value] };
+      }
+    });
+  };
+
+  // Função para selecionar todas as opções de uma variante
+  const handleSelectAllVariants = (variantName, options) => {
+    setSelectedVariants(prev => ({ ...prev, [variantName]: options }));
   };
 
   const handleReserveNow = () => {
@@ -128,29 +144,7 @@ const ProdutoPage = (props) => {
       showSnackbar("Erro ao processar reserva. Tente novamente.");
       return;
     }
-    
-    // Verifica se todas as variantes obrigatórias foram selecionadas
-    let variantsToCheck = [];
-    if (Array.isArray(produto.variants)) {
-      variantsToCheck = produto.variants;
-    } else if (produto.variants && typeof produto.variants === 'object') {
-      variantsToCheck = [{
-        name: produto.variants.name || "Tamanho",
-        options: Array.isArray(produto.variants.options) ? produto.variants.options : [],
-        required: produto.variants.required !== false
-      }];
-    }
-    
-    for (const variant of variantsToCheck) {
-      if (typeof variant === 'object' && variant.required) {
-        const variantName = variant.name || "Tamanho";
-        if (!selectedVariants[variantName]) {
-          showSnackbar(`Por favor, selecione uma opção para ${variantName}`);
-          return;
-        }
-      }
-    }
-    
+    // Não exige variantes obrigatórias
     // Redireciona para a página de reserva com os dados do produto
     navigate(`${slug ? `/${slug}` : ''}/reserva/${produto.id}`, {
       state: {
@@ -325,7 +319,7 @@ const ProdutoPage = (props) => {
                 {(Array.isArray(produto.variants) || (produto.variants && typeof produto.variants === 'object')) && (
                   <Box mb={3}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 1 }}>
-                      Opções disponíveis:
+                      Opções do pacote (você pode escolher várias):
                     </Typography>
                     {/* Converter para array se for objeto (estrutura antiga) */}
                     {(() => {
@@ -349,42 +343,49 @@ const ProdutoPage = (props) => {
                         if (!variant.options || !Array.isArray(variant.options) || variant.options.length === 0) {
                           return null; // Ignora variantes inválidas
                         }
+                        const variantName = variant.name || "Tamanho";
+                        const selected = selectedVariants[variantName] || [];
                         return (
-                          <Box key={variant.name || `variant-${index}`} sx={{ mb: 2 }}>
+                          <Box key={variantName} sx={{ mb: 2 }}>
                             <Typography variant="body1" sx={{ mb: 1, fontWeight: 500 }}>
-                              {variant.name || "Tamanho"}:
-                              {variant.required && (
-                                <Typography component="span" color="error.main" sx={{ ml: 1 }}>
-                                  *
-                                </Typography>
-                              )}
+                              {variantName}:
                             </Typography>
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              sx={{ mb: 1, ml: 1, textTransform: 'none' }}
+                              onClick={() => handleSelectAllVariants(variantName, variant.options)}
+                            >
+                              Selecionar todas
+                            </Button>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                              {variant.options.map((option) => {
-                                const variantName = variant.name || "Tamanho";
-                                const isSelected = selectedVariants[variantName] === option;
-                                return (
-                                  <Button
-                                    key={option}
-                                    variant={isSelected ? 'contained' : 'outlined'}
-                                    onClick={() => handleVariantChange(variantName, option)}
-                                    sx={{
-                                      textTransform: 'none',
-                                      minWidth: 'auto',
-                                      borderRadius: '8px',
-                                      border: isSelected ? '2px solid' : '1px solid',
-                                      borderColor: isSelected ? 'primary.main' : 'divider',
-                                      backgroundColor: isSelected ? 'primary.light' : 'background.paper',
-                                      color: isSelected ? 'primary.contrastText' : 'text.primary',
-                                      '&:hover': {
-                                        backgroundColor: isSelected ? 'primary.dark' : 'action.hover',
-                                      }
-                                    }}
-                                  >
-                                    {option}
-                                  </Button>
-                                );
-                              })}
+                              {variant.options.map((option) => (
+                                <Button
+                                  key={option}
+                                  variant={selected.includes(option) ? 'contained' : 'outlined'}
+                                  onClick={() => handleVariantChange(variantName, option)}
+                                  sx={{
+                                    textTransform: 'none',
+                                    minWidth: 'auto',
+                                    borderRadius: '8px',
+                                    border: selected.includes(option) ? '2px solid' : '1px solid',
+                                    borderColor: selected.includes(option) ? 'primary.main' : 'divider',
+                                    backgroundColor: selected.includes(option) ? 'primary.light' : 'background.paper',
+                                    color: selected.includes(option) ? 'primary.contrastText' : 'text.primary',
+                                    '&:hover': {
+                                      backgroundColor: selected.includes(option) ? 'primary.dark' : 'action.hover',
+                                    }
+                                  }}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={selected.includes(option)}
+                                    readOnly
+                                    style={{ marginRight: 6 }}
+                                  />
+                                  {option}
+                                </Button>
+                              ))}
                             </Box>
                           </Box>
                         );
