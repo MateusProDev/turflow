@@ -1,14 +1,10 @@
-// App.js
-import React, { Suspense, lazy, useRef } from "react";
+import React, { Suspense, lazy, useRef, useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { useState, useEffect } from "react";
 import { db } from './firebaseConfig';
 import Spinner from "./components/Spinner";
-import '@fortawesome/fontawesome-free/css/all.min.css'; 
-
-// Components
+import '@fortawesome/fontawesome-free/css/all.min.css';
 import HomePage from './components/HomePage/HomePage';
 import AuthForm from './components/AuthForm/AuthForm';
 import CreateStore from './components/CreateStore/CreateStore';
@@ -22,13 +18,9 @@ import ProdutoPage from "./components/Lojinha/ProdutoPage/ProdutoPage";
 import ProdutosPage from "./pages/ProdutosPage";
 import SkeletonLoja from "./components/SkeletonLoja";
 const CustomDomainRouter = lazy(() => import("./CustomDomainRouter/CustomDomainRouter"));
-
-// Utils
 import { verificarPlanoUsuario } from './utils/verificarPlanoUsuario';
-
-// Context
 import { CategoriasProvider } from "./context/CategoriasContext";
-import { UserPlanProvider } from "./context/UserPlanContext"; // Import the UserPlanProvider
+import { UserPlanProvider } from "./context/UserPlanContext";
 import { useLojaContext } from "./hooks/useLojaContext";
 
 // Componente de rota protegida
