@@ -17,11 +17,14 @@ import CategoriaPage from "./components/Lojinha/CategoriaPage/CategoriaPage";
 import ProdutoPage from "./components/Lojinha/ProdutoPage/ProdutoPage";
 import ProdutosPage from "./pages/ProdutosPage";
 import SkeletonLoja from "./components/SkeletonLoja";
-const CustomDomainRouter = lazy(() => import("./CustomDomainRouter/CustomDomainRouter"));
+// Utils
 import { verificarPlanoUsuario } from './utils/verificarPlanoUsuario';
+// Context
 import { CategoriasProvider } from "./context/CategoriasContext";
 import { UserPlanProvider } from "./context/UserPlanContext";
 import { useLojaContext } from "./hooks/useLojaContext";
+
+const CustomDomainRouter = lazy(() => import("./CustomDomainRouter/CustomDomainRouter"));
 
 // Componente de rota protegida
 const ProtectedRoute = ({ user, children }) => {
