@@ -7,6 +7,7 @@ import Spinner from '../components/Spinner';
 const LojaPage = () => {
   const { slug } = useParams(); // Obtém o slug da URL
   const [loja, setLoja] = useState(null);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     // Busca os dados da loja no Firestore
@@ -14,11 +15,16 @@ const LojaPage = () => {
     getDoc(lojaRef).then((docSnap) => {
       if (docSnap.exists()) {
         setLoja(docSnap.data());  // Armazena os dados da loja no estado
+        setNotFound(false);
       } else {
-        console.log("Loja não encontrada");
+        setNotFound(true);
       }
     }); 
   }, [slug]); // Atualiza quando o `slug` mudar
+
+  if (notFound) {
+    return <div>Loja não encontrada.</div>;
+  }
 
   if (!loja) {
     return <Spinner />; // Exibe um carregamento até os dados serem obtidos

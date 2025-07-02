@@ -170,7 +170,7 @@ const AppContent = () => {
   return (
     <UserPlanProvider>
       <Routes location={location}>
-        <Route path="/" element={<LojinhaPage />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/categoria/:categoria" element={<CategoriaPageWrapper />} />
         <Route path="/pacote/:produtoSlug" element={<ProdutoPageWrapper />} />
 
