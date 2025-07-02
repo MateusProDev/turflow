@@ -1,5 +1,5 @@
 // App.js
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useRef } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
@@ -7,7 +7,6 @@ import { useState, useEffect } from "react";
 import { db } from './firebaseConfig';
 import Spinner from "./components/Spinner";
 import '@fortawesome/fontawesome-free/css/all.min.css'; 
-import { useRef } from "react";
 
 // Components
 import HomePage from './components/HomePage/HomePage';
