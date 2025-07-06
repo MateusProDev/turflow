@@ -427,7 +427,7 @@ const Lojinha = ({
             onCheckoutTransparent={handleCheckoutMercadoPago} // <-- USA A NOVA FUNÇÃO!
             // **** FIM DA MUDANÇA ****
             enableWhatsappCheckout={storeData?.enableWhatsappCheckout ?? true}
-            enableMpCheckout={storeData?.enableMpCheckout ?? false}
+            enableMpCheckout={storeData?.enableMpCheckout ?? false} 
             cartTotal={cartTotal}
           />
         </>
