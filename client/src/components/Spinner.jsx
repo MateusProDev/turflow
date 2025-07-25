@@ -1,17 +1,48 @@
-import React from "react";
+import React, { memo } from "react";
+import { CircularProgress, Box, Typography } from '@mui/material';
 
-export default function Spinner({ height = "70vh" }) {
+const Spinner = memo(({ 
+  height = "70vh",
+  size = 40, 
+  message = "Carregando...", 
+  showMessage = true,
+  color = "primary" 
+}) => {
   return (
-    <div style={{display:'flex',justifyContent:'center',alignItems:'center',height}}>
-      <div className="spinner" style={{
-        width:60,
-        height:60,
-        border:'6px solid #eee',
-        borderTop:'6px solid #1976d2',
-        borderRadius:'50%',
-        animation:'spin 1s linear infinite'
-      }} />
-      <style>{`@keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}`}</style>
-    </div>
+    <Box
+      display="flex"
+      flexDirection="column"
+      justifyContent="center"
+      alignItems="center"
+      height={height}
+      gap={2}
+      style={{
+        position: 'relative',
+        zIndex: 1
+      }}
+    >
+      <CircularProgress 
+        size={size} 
+        color={color}
+        thickness={4}
+      />
+      {showMessage && (
+        <Typography 
+          variant="body2" 
+          color="text.secondary"
+          style={{ 
+            fontSize: '14px',
+            fontWeight: 500,
+            textAlign: 'center'
+          }}
+        >
+          {message}
+        </Typography>
+      )}
+    </Box>
   );
-}
+});
+
+Spinner.displayName = 'Spinner';
+
+export default Spinner;
